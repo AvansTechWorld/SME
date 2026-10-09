@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SME Tracker">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>SME Tracker</title>
+<style>
+:root{--in:#0f1a30;--b2:#1d2c4a;--bg:#0b1220;--card:#16213a;--line:#27354f;--tx:#e6edf7;--mu:#93a3bd;--ac:#38bdf8;--ok:#4ade80;--wr:#fbbf24;--al:#fb923c;--bd:#f87171}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+header b{font-size:17px}header small{display:block;color:var(--mu);font-size:11px;text-align:right}header #cash{font-weight:700;color:var(--ok);font-size:17px}
+main{max-width:640px;margin:auto;padding:12px 12px calc(88px + env(safe-area-inset-bottom))}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav button{flex:1;background:none;border:0;color:var(--mu);padding:9px 0 7px;font:600 11px system-ui,sans-serif}
+nav button span{display:block;font-size:21px;line-height:1.2}nav .on{color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:0 0 10px}
+input,select{width:100%;background:var(--in);border:1px solid var(--line);border-radius:10px;padding:11px;color:var(--tx);font-size:16px;margin:0 0 8px}
+input:disabled{opacity:.4}
+label{display:block;color:var(--mu);font-size:12px;margin:4px 0 3px}
+.b{background:var(--b2);border:1px solid var(--line);border-radius:10px;padding:10px 14px;color:var(--tx);font:600 14px system-ui,sans-serif}
+.b:active,.q:active,.tile:active{filter:brightness(1.3)}
+.pri{background:var(--ac);border-color:var(--ac);color:#04121f}.wide{width:100%;margin-top:8px}.bad{color:var(--bd)}.ok{color:var(--ok)}.wr{color:var(--wr)}.al{color:var(--al)}.mu{color:var(--mu)}
+.row{display:flex;gap:8px;align-items:center}.row .b{flex:1}.grow{flex:1;min-width:0}.r{text-align:right}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px}
+.tile{display:flex;flex-direction:column;gap:2px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;color:var(--tx);font:inherit}
+.tile span{color:var(--ac);font-weight:700}.tile small{color:var(--mu)}.tile:disabled{opacity:.35}.tile.low{border-color:var(--al)}
+.line{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}.amt{min-width:64px;text-align:right}
+.q{background:var(--b2);border:1px solid var(--line);color:var(--tx);border-radius:10px;width:38px;height:38px;font-size:18px}
+.hint{margin:10px 0 2px;color:var(--mu);font-size:14px}
+.pill{border:1px solid currentColor;border-radius:99px;padding:1px 9px;font-size:12px;font-weight:700;display:inline-block;margin-top:2px}
+.item{display:flex;gap:8px;align-items:center}.acts{display:flex;gap:5px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px}.stat small{color:var(--mu);display:block}.stat b{font-size:18px}
+.head{cursor:pointer}.hist{max-height:200px;overflow:auto;margin-top:8px;border-top:1px solid var(--line)}
+.hist div{display:flex;justify-content:space-between;gap:8px;padding:5px 0;font-size:13px;border-bottom:1px solid var(--line)}
+h3{margin:14px 2px 8px;font-size:15px}
+#ban{display:none;background:var(--card);border:1px solid var(--ac);border-radius:14px;padding:10px 12px;margin:0 0 10px;align-items:center;gap:8px}
+#ban.show{display:flex}#ban span{flex:1}
+#toast{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#e6edf7;color:#0b1220;padding:10px 16px;border-radius:99px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .3s;z-index:9;max-width:90%;text-align:center}
+#toast.show{opacity:1}
+body{touch-action:manipulation}.b{white-space:nowrap}.neg{color:var(--bd)!important}
+.acts2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.stats3{grid-template-columns:repeat(3,1fr)}
+#co{position:fixed;left:0;right:0;bottom:calc(62px + env(safe-area-inset-bottom));padding:8px 12px;background:var(--bg);border-top:1px solid var(--line);z-index:4;display:none}
+#co.show{display:block}#co .b{width:100%;padding:13px;font-size:16px;white-space:normal}body.co main{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+#sh{position:fixed;inset:0;background:#0009;z-index:20;display:none;align-items:flex-end}#sh.show{display:flex}
+#sh form{width:100%;max-width:640px;margin:auto;background:var(--card);border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+#sh p{margin:6px 0}
+#bell{position:relative;background:none;border:0;font-size:22px;padding:4px}#bn{position:absolute;top:-3px;right:-5px;background:var(--bd);color:#fff;border-radius:99px;font:700 10px system-ui;font-style:normal;padding:1px 5px;display:none}
+#sh form{max-height:88vh;overflow:auto}
+#bkd{display:none;background:var(--card);border:1px solid var(--wr);border-radius:14px;padding:10px 12px;margin:0 0 10px;align-items:center;gap:8px}#bkd.show{display:flex}#bkd span{flex:1}
+#toast{z-index:120}
+.rc{background:#fff;color:#111;border-radius:10px;padding:16px;font:14px/1.5 ui-monospace,Menlo,monospace}.rc h2{margin:0;text-align:center;font-size:18px}.rt{text-align:center;color:#555;margin-bottom:8px}.rr{display:flex;justify-content:space-between;gap:10px}.rb{font-weight:700}.rc hr{border:0;border-top:1px dashed #999;margin:8px 0}.rf{text-align:center;color:#777;font-size:11px;margin-top:10px}
+@media print{body>*:not(#sh){display:none!important}#sh{position:static!important;display:block!important;background:none!important}#sh form{background:none!important;border:0!important;max-height:none!important;padding:0!important}.np{display:none!important}}
+@media(min-width:900px){main{max-width:760px}#sh form{max-width:560px;border-radius:18px;margin:auto}#sh{align-items:center}}
+:root.light{--bg:#f4f6fb;--card:#fff;--line:#d9e0ee;--tx:#14213d;--mu:#5b6b86;--in:#eef2fa;--b2:#e6ecf8;--ok:#16a34a;--wr:#d97706;--al:#ea580c;--bd:#dc2626}
+.chips{display:flex;gap:6px;overflow-x:auto;margin:0 0 8px;padding-bottom:2px}.chips .b{flex:0 0 auto;padding:8px 13px}
+.hint.big{font-size:15px;text-align:center;padding:12px;border:2px solid currentColor;border-radius:14px}.hint.big b{display:block;font-size:32px}.hint.big small{display:block;font-size:13px;color:var(--mu)}
+.tile{transition:transform .1s}.tile:active{transform:scale(.94)}
+#pop{position:fixed;left:50%;top:36%;transform:translate(-50%,-50%) scale(.6);background:var(--card);border:2px solid var(--ok);border-radius:22px;padding:18px 34px;text-align:center;font-size:20px;opacity:0;pointer-events:none;z-index:130;box-shadow:0 10px 40px #0008}
+#pop b{display:block;font-size:46px;color:var(--ok)}#pop.show{opacity:1;pointer-events:auto;animation:pp .35s cubic-bezier(.3,1.6,.5,1) forwards}@keyframes pp{to{transform:translate(-50%,-50%) scale(1)}}
+/* UX polish: 44px touch targets, visible keyboard focus, reduced motion, desktop layout */
+.b{min-height:44px}.q{width:44px;height:44px}
+button:focus-visible,input:focus-visible,select:focus-visible,[data-a]:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+input:focus,select:focus{border-color:var(--ac);outline:0}input:focus-visible,select:focus-visible{outline:3px solid var(--ac);outline-offset:1px}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+@media(min-width:1000px){main{max-width:1120px}#view.stock,#view.dinau,#view.report{max-width:760px;margin:0 auto}
+#view.sell{display:grid;grid-template-columns:minmax(0,1fr) 380px;column-gap:16px;align-items:start}
+#view.sell>input{grid-column:1}#view.sell>.grid{grid-column:1;grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+#view.sell>.card{grid-column:2;grid-row:1/span 2;position:sticky;top:76px}
+nav,#co{max-width:1120px;margin:0 auto}nav{border:1px solid var(--line);border-bottom:0;border-radius:14px 14px 0 0}}
+#pop.show{pointer-events:none}body.co main{padding-bottom:calc(215px + env(safe-area-inset-bottom))}
+@media(min-width:430px){#grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1000px){#view.sell>.chips{grid-column:1}#view.sell>.card{grid-row:1/span 3}}
+</style>
+</head>
+<body>
+<header><b id="store"></b><div style="display:flex;gap:14px;align-items:center"><button id="wb" data-a="who" aria-label="Who is using the app" style="background:none;border:0;color:var(--mu);font:600 12px system-ui;padding:4px"></button><button id="bell" data-a="bell" aria-label="Dinau reminders">🔔<i id="bn"></i></button><div><small>Cash in hand</small><div id="cash"></div></div></div></header>
+<main><div id="bkd"></div><div id="ban"><span id="bant"></span><button class="b" id="banb">Install</button><button class="q" id="bank" aria-label="Dismiss">×</button></div><div id="view"></div></main>
+<nav>
+<button data-t="sell"><span>🛒</span>Sell</button><button data-t="stock"><span>📦</span>Stock</button><button data-t="dinau"><span>📒</span>Dinau</button><button data-t="report"><span>📊</span>Report</button>
+</nav>
+<div id="co"></div><div id="sh" role="dialog" aria-modal="true" aria-label="Dialog"></div><div id="toast"></div><div id="pop"></div>
+<script>
+"use strict";
+const $=id=>document.getElementById(id),KEY='sme.tracker.v1';
+const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const r2=n=>Math.round((+n||0)*100)/100,pad=n=>String(n).padStart(2,'0');
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const today=()=>ymd(new Date());
+const num=s=>{const n=parseFloat(String(s).replace(',','.'));return isNaN(n)?null:n};
+const fresh=()=>({cfg:{store:'My Store',currency:'K',remindDays:7,rcpt:0},items:[],customers:[],txns:[],log:[]});
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.items)&&Array.isArray(s.txns))return{cfg:{...fresh().cfg,...s.cfg},items:s.items,customers:s.customers||[],txns:s.txns,log:s.log||[]}}catch(x){}return fresh()}
+let S=load(),C,tab='sell',cart=[],selC='',paid=null,q='',editId=null,openC=null,cq='',per=7,tt,meth='cash';
+const MS=['cash','mobile'],ML={cash:'Cash',mobile:'Mobile banking'},mt=t=>t.method&&t.method!=='cash'?'mobile':'cash',CATS=['Transport','Airtime','Packaging','Rent','Other'],MV=['sale','payment','expense','draw','loan','loanpay','refund'];
+function numb(){let n=Math.max(S.cfg.rcpt||0,0,...S.txns.map(t=>t.no||0));for(const t of [...S.txns].sort((a,b)=>a.ts-b.ts))if(!t.no)t.no=++n;S.cfg.rcpt=n}
+numb();
+const add=t=>{t.no=++S.cfg.rcpt;t.by=who||'?';S.txns.push(t);L(ACT[t.type]||t.type,sum(t))};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(x){toast('Could not save — storage blocked')}};
+const m=n=>(n<0?'-':'')+(S.cfg.currency||'K')+Math.abs(r2(n)).toFixed(2);
+function toast(s){const t=$('toast');t.textContent=s;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2300)}
+
+/* ---- everything below is derived from S.txns ---- */
+function calc(){const c={bought:{},sold:{},adj:{},bal:{},lastPay:{},firstCredit:{},cr:{},pay:{},oldest:{},cash:0,gp:0,sales:0,spent:0,exp:0,m:{cash:0,mobile:0},wo:0,draw:0,loans:{},loanInt:0,loanPaid:0};
+for(const t of S.txns){const k=t.customerId;
+ if(t.type==='sale'){const mb=Math.min(t.mob||0,t.paidNow);if(mb>0){c.m.mobile+=mb;c.m.cash+=t.paidNow-mb}else c.m[mt(t)]+=t.paidNow;c.sales+=t.total;
+  for(const l of t.lines){if(l.itemId)c.sold[l.itemId]=(c.sold[l.itemId]||0)+l.qty;c.gp+=(l.price-l.cost)*l.qty}
+  if(k){c.bal[k]=(c.bal[k]||0)+t.total-t.paidNow;if(t.total>t.paidNow)(c.cr[k]=c.cr[k]||[]).push({d:t.date,a:t.total-t.paidNow});
+   if(t.total>t.paidNow&&(!c.firstCredit[k]||t.date<c.firstCredit[k]))c.firstCredit[k]=t.date}}
+ else if(t.type==='payment'){c.m[mt(t)]+=t.amount;c.pay[k]=(c.pay[k]||0)+t.amount;c.bal[k]=(c.bal[k]||0)-t.amount;if(!(c.lastPay[k]>=t.date))c.lastPay[k]=t.date}
+ else if(t.type==='cash'){c.m[mt(t)]+=t.amount}
+ else if(t.type==='expense'){c.m[mt(t)]-=t.amount;c.exp+=t.amount}
+ else if(t.type==='writeoff'){c.bal[k]=(c.bal[k]||0)-t.amount;c.pay[k]=(c.pay[k]||0)+t.amount;c.wo+=t.amount}
+ else if(t.type==='draw'){c.m[mt(t)]-=t.amount;c.draw+=t.amount}
+ else if(t.type==='loan'){c.m[mt(t)]+=t.amount;c.loans[t.id]={lender:t.lender||'Lender',principal:t.amount,owe:t.owe||t.amount,paid:0,due:t.due||'',date:t.date}}
+ else if(t.type==='loanpay'){c.m[mt(t)]-=t.amount;const l=c.loans[t.loanId];if(l){l.paid+=t.amount;c.loanPaid+=t.amount;c.loanInt+=t.amount*(l.owe-l.principal)/l.owe}}
+ else if(t.type==='refund'){c.sales-=t.total;for(const l of t.lines){if(l.itemId)c.sold[l.itemId]=(c.sold[l.itemId]||0)-l.qty;c.gp-=(l.price-l.cost)*l.qty}
+  if(t.refundTo==='dinau'&&k){c.bal[k]=(c.bal[k]||0)-t.total;c.pay[k]=(c.pay[k]||0)+t.total}else c.m[mt(t)]-=t.total}
+ else if(t.type==='restock'){if(t.note!=='Opening stock'){c.m.cash-=t.total;c.spent+=t.total}for(const l of t.lines)c.bought[l.itemId]=(c.bought[l.itemId]||0)+l.qty}
+ else if(t.type==='adjust'){for(const l of t.lines)c.adj[l.itemId]=(c.adj[l.itemId]||0)+l.qty}}
+for(const k in c.cr){let p=c.pay[k]||0;for(const x of c.cr[k].sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0)){if(p>=x.a-.005)p-=x.a;else{c.oldest[k]=x.d;break}}}
+c.cash=c.m.cash;c.money=c.m.cash+c.m.mobile;c.loanInt=r2(c.loanInt);c.loanOwed=r2(Object.values(c.loans).reduce((a,l)=>a+Math.max(0,l.owe-l.paid),0));return c}
+const qty=id=>(C.bought[id]||0)+(C.adj[id]||0)-(C.sold[id]||0);
+const bal=id=>r2(C.bal[id]||0);
+const cu=id=>S.customers.find(c=>c.id===id);
+function idle(id){const ref=C.oldest[id];if(!ref)return 0;return Math.max(0,Math.round((new Date(today()+'T00:00:00')-new Date(ref+'T00:00:00'))/864e5))}
+const overdue=()=>S.customers.map(c=>({c,b:bal(c.id),d:idle(c.id)})).filter(x=>x.b>0&&x.d>=(S.cfg.remindDays||7)).sort((a,b)=>b.d-a.d);
+const age=d=>d<7?'ok':d<21?'wr':d<45?'al':'bd';
+const outstanding=()=>S.customers.reduce((s,c)=>s+Math.max(0,bal(c.id)),0);
+
+let sk='',catF='all';
+const hit=(i,k)=>{const h=(i.name+' '+(i.cat||'')).toLowerCase();return k.toLowerCase().split(/\s+/).filter(Boolean).every(w=>h.includes(w))};
+const catList=()=>[...new Set(S.items.map(i=>(i.cat||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+function cc(){const c=catList(),f=S.items.some(i=>i.fav),el=$('cc');if(!el)return;if(catF!=='all'&&catF!=='fav'&&!c.includes(catF)||catF==='fav'&&!f)catF='all';
+ el.style.display=c.length||f?'flex':'none';el.innerHTML=[['all','All'],...(f?[['fav','★ Favourites']]:[]),...c.map(x=>[x,x])].map(([k,l])=>`<button class="b${catF===k?' pri':''}" data-a="catf" data-id="${e(k)}">${e(l)}</button>`).join('')}
+function drawSl(){const L=S.items.filter(i=>hit(i,sk)).sort((a,b)=>(qty(a.id)<=a.low?0:1)-(qty(b.id)<=b.low?0:1)||a.name.localeCompare(b.name));
+ $('sl').innerHTML=L.length?L.map(stockRow).join(''):'<p class="mu">'+(S.items.length?'No items match.':'No items yet. Add your first one above.')+'</p>'}
+function quickTile(k){const n=/^\d+([.,]\d{1,2})?$/.test(k)?num(k):null;return n>0?`<button class="tile" data-a="quick" data-id="${n}" style="border-style:dashed"><b>➕ Quick add</b><span>${m(n)}</span><small>one-off item</small></button>`:''}
+let lastSale=null;
+function closeCard(){const c=(S.cfg.closes||[]).slice(-1)[0];if(!c)return'';return`<div class="stat" style="margin-bottom:8px"><small>Last cash-up · ${e(c.date)} · counted ${m(c.counted)} vs expected ${m(c.exp)}</small><b class="${c.diff<0?'bad':c.diff>0?'wr':'ok'}">${c.diff?(c.diff<0?'Short ':'Over ')+m(Math.abs(c.diff)):'Balanced ✓'}</b></div>`}
+/* ---- loans and potential profit ---- */
+function loanCard(){const Ls=Object.entries(C.loans).map(([id,l])=>({id,...l,b:r2(l.owe-l.paid)})).sort((a,b)=>(a.b>0?0:1)-(b.b>0?0:1)||(a.due||'9999').localeCompare(b.due||'9999'));if(!Ls.length)return'';
+ return`<h3>Loans</h3>${Ls.map(l=>`<div class="card"><div class="row"><b class="grow">🏦 ${e(l.lender)}</b><b class="${l.b>0?'bad':'ok'}">${l.b>0?m(l.b)+' left':'Paid off'}</b></div><div class="mu">Borrowed ${m(l.principal)} on ${e(l.date)}${l.owe>l.principal?` · pay back ${m(l.owe)} (interest ${m(l.owe-l.principal)})`:''}${l.due?` · due ${e(l.due)}${l.b>0&&l.due<today()?' ⚠️ overdue':''}`:''}</div><div style="height:6px;border-radius:9px;background:var(--in);margin:8px 0"><div style="height:6px;border-radius:9px;background:var(--ok);width:${Math.min(100,Math.round(l.paid/l.owe*100))}%"></div></div>${l.b>0?`<button class="b wide" data-a="lpay" data-id="${l.id}">Make a repayment</button>`:''}</div>`).join('')}`}
+function potCard(){const L=S.items.map(i=>({i,n:Math.max(0,qty(i.id))})).filter(x=>x.n>0).map(x=>({...x,p:x.n*(x.i.price-x.i.cost)}));if(!L.length)return'';
+ const sc=r2(L.reduce((a,x)=>a+x.n*x.i.cost,0)),sr=r2(L.reduce((a,x)=>a+x.n*x.i.price,0)),pp=r2(sr-sc),mg=sr?Math.round(pp/sr*1000)/10:0,mk=sc?Math.round(pp/sc*1000)/10:0,out=outstanding(),
+ T=[...L].sort((a,b)=>b.p-a.p).slice(0,5),mx=Math.max(1,...T.map(x=>x.p)),thin=L.filter(x=>x.i.price<=x.i.cost).map(x=>x.i.name),
+ st=[['Stock at cost',m(sc)],['Stock at retail',m(sr)],['Potential profit',m(pp),pp<0?'bad':'ok'],['Profit margin',mg+'%',mg<0?'bad':'ok'],['Markup on cost',mk+'%'],['Worth after loans',m(C.money+out+sr-C.loanOwed),'ac']];
+ return`<h3>If you sell all your stock</h3><div class="stats">${st.map(([l,v,c])=>`<div class="stat"><small>${l}</small><b class="${c||''}" ${c==='ac'?'style="color:var(--ac)"':''}>${v}</b></div>`).join('')}</div>
+ <div class="mu" style="font-size:12px;margin:6px 0">Potential profit = what the stock sells for − what it cost. Margin = profit ÷ selling price. Markup = profit ÷ cost. "Worth after loans" = cash + mobile + money owed to you + stock at retail − loans you owe. It assumes everything sells at its shelf price.</div>
+ <div class="card"><b>Biggest profit waiting on the shelf</b>${T.map(x=>`<div style="margin:6px 0"><div class="row"><span class="grow">${e(x.i.name)} <small class="mu">× ${x.n} · ${x.i.price?Math.round((x.i.price-x.i.cost)/x.i.price*100):0}% margin</small></span><b class="${x.p<0?'bad':'ok'}">${m(x.p)}</b></div><div style="height:6px;border-radius:9px;background:var(--in)"><div style="height:6px;border-radius:9px;background:var(--ok);width:${Math.max(3,Math.round(Math.max(0,x.p)/mx*100))}%"></div></div></div>`).join('')}${thin.length?`<div class="wr" style="margin-top:8px">⚠️ Priced at or below cost: ${e(thin.slice(0,6).join(', '))}${thin.length>6?' …':''}</div>`:''}</div>`}
+
+/* ---- rush mode: held orders survive a reload ---- */
+let held=(()=>{try{const h=JSON.parse(localStorage.getItem('sme.tracker.held'));return Array.isArray(h)?h:[]}catch(x){return[]}})(),hn=0;
+const saveHeld=()=>{try{localStorage.setItem('sme.tracker.held',JSON.stringify(held))}catch(x){}},lbl=()=>{const c=selC&&cu(selC);return c?c.name.split(' ')[0]:'#'+(++hn)};
+/* ---- seller tools: bulk add, order list, best sellers, spreadsheet export ---- */
+const parseBulk=t=>{const seen=new Set(S.items.map(i=>i.name.trim().toLowerCase())),ok=[],bad=[],dup=[];
+ t.split(/\r?\n/).forEach((ln,ix)=>{if(!ln.trim())return;const f=(ln.includes('\t')?ln.split('\t'):ln.split(/[,;]/)).map(x=>x.trim()),n=f[0],c=num(f[1]),p=num(f[2]),k=f[3]===undefined||f[3]===''?0:num(f[3]);
+  if(!n||c===null||p===null||k===null||c<0||p<0||k<0){bad.push(ix+1);return}
+  if(seen.has(n.toLowerCase())){dup.push(n);return}seen.add(n.toLowerCase());ok.push({n:n.slice(0,60),c,p,k:Math.floor(k),g:(f[4]||'').slice(0,24)})});return{ok,bad,dup}};
+function bestCard(){const lim=per?ymd(new Date(Date.now()-(per-1)*864e5)):'0000',l30=ymd(new Date(Date.now()-29*864e5)),R={},sold=new Set();
+ for(const t of S.txns)if(t.type==='sale')for(const l of t.lines){if(t.date>=l30&&l.itemId)sold.add(l.itemId);if(t.date<lim)continue;const k=l.itemId||l.name,x=R[k]=R[k]||{n:l.name,q:0,g:0};x.q+=l.qty;x.g+=(l.price-l.cost)*l.qty}
+ const T=Object.values(R).sort((a,b)=>b.g-a.g).slice(0,5),mx=Math.max(1,...T.map(x=>x.g)),SL=S.items.filter(i=>qty(i.id)>0&&!sold.has(i.id)&&(i.created||'0')<=l30),sv=SL.reduce((a,i)=>a+qty(i.id)*i.cost,0);
+ return(T.length?`<h3>Best sellers (by profit)</h3><div class="card">${T.map(x=>`<div style="margin:6px 0"><div class="row"><span class="grow">${e(x.n)} <small class="mu">× ${x.q}</small></span><b class="ok">${m(x.g)}</b></div><div style="height:6px;border-radius:9px;background:var(--in)"><div style="height:6px;border-radius:9px;background:var(--ok);width:${Math.max(3,Math.round(Math.max(0,x.g)/mx*100))}%"></div></div></div>`).join('')}</div>`:'')+
+ (SL.length?`<h3>Not selling (30 days)</h3><div class="card"><div class="mu">${m(sv)} of stock at cost has not sold in 30 days. Think about a discount, or stop restocking these:</div>${SL.slice(0,8).map(i=>`<div class="line"><span class="grow">${e(i.name)}</span><span class="mu">${qty(i.id)} × ${m(i.cost)}</span></div>`).join('')}</div>`:'')}
+
+const commit=()=>{save();render()};
+function header(){$('store').textContent=S.cfg.store;$('cash').textContent=m(C.cash);$('cash').classList.toggle('neg',C.cash<0);$('wb').textContent='👤 '+(who||'?');const n=overdue().length;$('bn').textContent=n;$('bn').style.display=n?'block':'none'}
+function render(){C=calc();header();
+ document.querySelectorAll('nav button').forEach(b=>{const on=b.dataset.t===tab;b.classList.toggle('on',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current')});$('view').className=tab;
+ ({sell:vSell,stock:vStock,dinau:vDinau,report:vReport})[tab]();co()}
+
+/* ---- SELL ---- */
+const tot=()=>r2(cart.reduce((s,l)=>s+l.qty*l.price,0));
+const inCart=id=>[...cart,...held.flatMap(h=>h.cart)].filter(l=>l.itemId===id).reduce((s,l)=>s+l.qty,0);
+function pv(){const t=tot();let p=paid===null?t:+paid;if(isNaN(p)||p<0)p=0;return Math.min(r2(p),t)}
+function vSell(){
+ $('view').innerHTML=`<input id="q" type="search" placeholder="Search items…" value="${e(q)}"><div class="chips" id="cc"></div><div id="grid" class="grid"></div>
+ <div class="card"><div class="row"><b class="grow">Cart</b><button class="b" data-a="disc" style="flex:0">% Off</button><button class="b" data-a="custom" style="flex:0">+ Custom item</button></div><div id="cart"></div>
+ <label>Customer</label><select id="cs"></select>
+ <label>Customer gives</label><input id="paid" type="number" inputmode="decimal" step="0.01" min="0"><div class="chips" id="notes"></div><div class="row" id="mth" style="margin-bottom:8px"></div>
+ <div class="row"><button class="b" data-a="full">Paid full</button><button class="b" data-a="zero">Full dinau</button><button class="b" data-a="clear">Clear</button></div>
+ <div id="hint" class="hint"></div><button class="b wide" id="undo" data-a="undo" style="margin-top:8px" hidden></button></div>`;
+ $('q').oninput=ev=>{q=ev.target.value;grid()};
+ $('paid').oninput=ev=>{paid=ev.target.value;hint()};
+ $('paid').onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();A.done()}};
+ $('q').onkeydown=ev=>{if(ev.key==='Enter'){const b=document.querySelector('#grid .tile:not([disabled])');if(b)b.click()}};
+ $('cs').onchange=async ev=>{const v=ev.target.value;if(v==='__new'){const c=await newCust();if(c)selC=c.id}else selC=v;opts();hint()};
+ updSell()}
+function mthUI(){$('mth').innerHTML=[...MS,'split'].map(k=>`<button class="b${meth===k?' pri':''}" data-a="meth" data-id="${k}">${k==='split'?'Split':ML[k]}</button>`).join('')}
+const notes=()=>(S.cfg.notes||'1,2,5,10,20,50,100').split(',').map(x=>num(x)).filter(x=>x>0).slice(0,8);
+function updSell(){cc();grid();cartUI();opts();mthUI();$('notes').innerHTML=notes().map(n=>`<button class="b" data-a="given" data-id="${n}">${m(n).replace('.00','')}</button>`).join('');if(paid===null)$('paid').value=tot()?tot().toFixed(2):'';hint();{const u=$('undo'),sl=lastSale&&S.txns.find(x=>x.id===lastSale&&Date.now()-x.ts<18e5);u.hidden=!sl;if(sl)u.textContent='↩ Undo last sale · '+m(sl.total)}}
+function grid(){const k=q.trim().toLowerCase(),L=S.items.filter(i=>k?hit(i,k):catF==='fav'?i.fav:catF==='all'||i.cat===catF).sort((a,b)=>(catF==='all'&&!k?(b.fav?1:0)-(a.fav?1:0):0)||(C.sold[b.id]||0)-(C.sold[a.id]||0)||a.name.localeCompare(b.name));
+ $('grid').innerHTML=quickTile(k)+(L.length?L.map(i=>{const n=qty(i.id),left=n-inCart(i.id);
+  return`<button class="tile${n>0&&n<=i.low?' low':''}" data-a="add" data-id="${i.id}"${left<=0?' disabled':''}><b>${i.ico?e(i.ico)+' ':''}${e(i.name)}</b><span>${m(i.price)}</span><small>${left} left</small></button>`}).join('')
+  :`<p class="mu" style="grid-column:1/-1">${S.items.length?'No items match.':'Add your first item to start selling.'}</p>${S.items.length?'':'<button class="b pri" style="grid-column:1/-1" data-a="gostock">Add first item</button>'}`)}
+function cartUI(){$('cart').innerHTML=cart.length?cart.map((l,i)=>`<div class="line"><div class="grow" data-a="pr" data-i="${i}">${e(l.name)}<small class="mu"> ${m(l.price)} ✎</small></div><button class="q" data-a="dec" data-i="${i}">−</button><b>${l.qty}</b><button class="q" data-a="inc" data-i="${i}">+</button><span class="amt">${m(l.qty*l.price)}</span></div>`).join('')+`<div class="line"><b class="grow">Total</b><b>${m(tot())}</b></div>`:'<p class="mu">Tap an item to add it.</p>'}
+function opts(){$('cs').innerHTML='<option value="">Cash sale</option>'+S.customers.map(c=>`<option value="${c.id}"${c.id===selC?' selected':''}>${e(c.name)}${S.customers.filter(x=>x.name.trim().toLowerCase()===c.name.trim().toLowerCase()).length>1&&c.phone?' · '+e(c.phone):''} (${m(bal(c.id))})</option>`).join('')+'<option value="__new">+ New customer…</option>'}
+function co(){const t=tot(),u=r2(t-pv()),b=$('co'),on=tab==='sell'&&(cart.length>0||held.length>0);b.classList.toggle('show',on);document.body.classList.toggle('co',on);
+ if(on)b.innerHTML=(held.length?`<div class="chips" style="margin:0 0 8px">${held.map(h=>`<button class="b" data-a="resume" data-id="${h.id}" style="min-height:40px;padding:6px 12px">⏸ ${e(h.label)} · ${m(h.t)}</button>`).join('')}</div>`:'')+(cart.length?`<div class="row"><button class="b" data-a="hold" style="flex:0 0 auto;width:auto">⏸ Hold</button><button class="b pri" data-a="done">Complete sale · ${m(t)}${u>0?` (${m(u)} dinau)`:''}</button></div>`:'')}
+function hint(){co();const t=tot(),p=pv(),u=r2(t-p),g=paid===null?t:(+paid||0),ch=r2(g-t),h=$('hint');
+ if(!t){h.className='hint';h.textContent='Add items to start a sale.'}
+ else if(ch>0){h.className='hint big ok';h.innerHTML=`Give change<b>${m(ch)}</b>`}
+ else if(u<=0){h.className='hint ok';h.textContent=`Cash sale — ${m(p)} collected.`}
+ else if(!selC){h.className='hint wr';h.textContent=`${m(u)} still unpaid. Pick a customer to put it on dinau.`}
+ else{h.className='hint big wr';h.innerHTML=`${e(cu(selC).name)} will owe<b>${m(bal(selC)+u)}</b><small>${m(p)} paid now · ${m(u)} added to dinau</small>`}}
+
+/* ---- STOCK ---- */
+function vStock(){const ed=S.items.find(i=>i.id===editId);
+ $('view').innerHTML=`<div class="card"><b>${ed?'Edit item':'Add item'}</b>
+ <div class="row"><div style="flex:0 0 76px"><label>Emoji</label><input id="fe" maxlength="4" value="${e(ed?.ico)}"></div><div class="grow"><label>Name</label><input id="fn" value="${e(ed?.name)}"></div></div>
+ <div class="two"><div><label>Cost price</label><input id="fc" type="number" inputmode="decimal" step="0.01" value="${ed?ed.cost:''}"></div>
+ <div><label>Sell price</label><input id="fp" type="number" inputmode="decimal" step="0.01" value="${ed?ed.price:''}"></div>
+ <div><label>Stock on hand</label><input id="fq" type="number" inputmode="numeric" ${ed?'disabled':''}></div>
+ <div><label>Low-stock alert</label><input id="fl" type="number" inputmode="numeric" value="${ed?ed.low:3}"></div></div>
+ <label>Category (optional)</label><input id="fk" list="cats" maxlength="24" placeholder="e.g. Drinks, Groceries" value="${e(ed?.cat)}"><datalist id="cats">${catList().map(c=>`<option value="${e(c)}">`).join('')}</datalist>
+ <div class="row"><button class="b pri" data-a="saveItem">${ed?'Save changes':'Add item'}</button>${ed?`<button class="b" data-a="adjq" data-id="${ed.id}">Fix count</button><button class="b" data-a="cancelEdit">Cancel</button>`:''}</div></div>
+ <div class="row" style="margin:0 0 10px"><button class="b" data-a="bulk">📋 Add many items</button><button class="b" data-a="count">🔢 Count stock</button><button class="b" data-a="shop">🛒 Order list${(()=>{const n=S.items.filter(i=>qty(i.id)<=i.low).length;return n?` (${n})`:''})()}</button></div>
+ ${S.items.length>6?`<input id="sks" type="search" placeholder="Search ${S.items.length} items…" value="${e(sk)}">`:''}<div id="sl"></div>`;
+ drawSl();const x=$('sks');if(x)x.oninput=ev=>{sk=ev.target.value;drawSl()}}
+function stockRow(i){const n=qty(i.id),mg=i.price-i.cost,pc=i.price?Math.round(mg/i.price*100):0,cl=n<=0?'bad':n<=i.low?'al':'ok';
+ return`<div class="card item"><div class="grow"><b>${i.ico?e(i.ico)+' ':''}${e(i.name)}</b>${i.cat?` <small class="mu">· ${e(i.cat)}</small>`:''}<div class="mu">${m(i.price)} · ${m(i.cost)} · ${m(mg)} (${pc}%)</div><div class="mu">Bought ${C.bought[i.id]||0} · Sold ${C.sold[i.id]||0} · Left ${n}</div></div>
+ <span class="pill ${cl}">${n}</span><div class="acts"><button class="q" data-a="rs" data-id="${i.id}">+</button><button class="q" data-a="fav" data-id="${i.id}" aria-label="Favourite">${i.fav?'★':'☆'}</button><button class="q" data-a="ed" data-id="${i.id}">✎</button><button class="q" data-a="di" data-id="${i.id}">×</button></div></div>`}
+
+/* ---- DINAU ---- */
+function vDinau(){
+ const L=S.customers.map(c=>({c,b:bal(c.id),d:idle(c.id)})).sort((x,y)=>{const a=x.b>0,b=y.b>0;if(a!==b)return a?-1:1;if(a)return y.d-x.d;return x.c.name.localeCompare(y.c.name)});
+ const ow=L.filter(x=>x.b>0);
+ $('view').innerHTML=`<div class="stats stats3"><div class="stat"><small>Owed to you</small><b class="wr">${m(outstanding())}</b></div><div class="stat"><small>Owing</small><b>${ow.length}</b></div><div class="stat"><small>Longest wait</small><b>${ow.length?Math.max(...ow.map(x=>x.d)):0} days</b></div></div>
+ <button class="b wide" style="margin:0 0 10px" data-a="newc">+ Add customer</button>
+ ${L.length>5?'<input id="cq" type="search" placeholder="Search customers…">':''}<div id="cl"></div>`;
+ const draw=()=>{const k=cq.trim().toLowerCase(),F=L.filter(x=>x.c.name.toLowerCase().includes(k));$('cl').innerHTML=F.length?F.map(({c,b,d})=>custCard(c,b,d)).join(''):'<p class="mu">'+(L.length?'No match.':'No customers yet. Add one here or while making a sale.')+'</p>'};
+ draw();if($('cq')){$('cq').value=cq;$('cq').oninput=ev=>{cq=ev.target.value;draw()}}}
+function custCard(c,b,d){const open=openC===c.id;
+ const sub=b>0?`${d} days owed · ${C.lastPay[c.id]?'last paid '+C.lastPay[c.id]:'never paid'}${c.limit?` · limit ${m(c.limit)}`:''}`:b<0?'Overpaid — in credit':'Nothing owed';
+ let det='';
+ if(open){const H=S.txns.filter(t=>t.customerId===c.id).sort((a,b)=>b.ts-a.ts).slice(0,12);
+  det=`<div class="acts2"><button class="b" data-a="pay" data-id="${c.id}">Record payment</button><button class="b" data-a="nsale" data-id="${c.id}">New sale</button><button class="b" data-a="editc" data-id="${c.id}">Edit</button><button class="b bad" data-a="delc" data-id="${c.id}">Delete</button></div>${b>0?`<button class="b bad wide" data-a="wo" data-id="${c.id}">Write off ${m(b)} as bad debt</button>`:''}
+  <div class="hist">${H.length?H.map(t=>`<div data-a="rc" data-id="${t.id}"><span>🧾 ${e(t.date)} · ${t.type==='sale'?'Sale '+m(t.total)+' (paid '+m(t.paidNow)+')':t.type==='writeoff'?'Written off':'Payment'}</span><b class="${t.type==='sale'?'wr':t.type==='writeoff'?'bad':'ok'}">${t.type==='sale'?'+'+m(t.total-t.paidNow):'−'+m(t.amount)}</b></div>`).join(''):'<div class="mu">No history yet.</div>'}</div>`}
+ return`<div class="card"><div class="row head" data-a="tog" data-id="${c.id}"><div class="grow"><b>${e(c.name)}</b><div class="mu">${c.phone?e(c.phone)+' · ':''}${sub}</div></div><div class="r"><b class="${b>0?'wr':b<0?'ok':''}">${m(b)}</b>${b>0?`<div><span class="pill ${age(d)}">${d}d</span></div>`:''}</div></div>${det}</div>`}
+
+/* ---- REPORT ---- */
+function vReport(){
+ const sc=S.items.reduce((s,i)=>s+Math.max(0,qty(i.id))*i.cost,0),sr=S.items.reduce((s,i)=>s+Math.max(0,qty(i.id))*i.price,0);
+ const low=S.items.filter(i=>qty(i.id)<=i.low).length,out=outstanding(),bk=S.cfg.backedUp,nudge=S.txns.length&&(!bk||(new Date(today()+'T00:00:00')-new Date(bk+'T00:00:00'))/864e5>14)?'<div class="card" style="border-color:var(--wr)"><b>Back up your data</b><div class="mu">It only lives on this phone. Export a backup now and then.</div><button class="b wide" data-a="exp">Export backup</button></div>':'';
+ const st=[['Cash in hand',m(C.cash),'ok'],['Dinau outstanding',m(out),'wr'],['Stock at cost',m(sc)],['Stock at retail',m(sr)],['Gross profit',m(C.gp),'ok'],['Low-stock items',low,low?'al':''],['Total sales',m(C.sales)],['Spent on stock',m(C.spent)],['Debt written off',m(C.wo),C.wo?'bad':''],['Owner drawings',m(C.draw)],...(Object.keys(C.loans).length?[['Loans you owe',m(C.loanOwed),C.loanOwed?'bad':'ok'],['Loan interest paid',m(C.loanInt)]]:[]),['Net position',m(C.money+out+sc-C.loanOwed),'ac']];
+ const F=[...S.txns].sort((a,b)=>b.ts-a.ts).slice(0,40);
+ $('view').innerHTML=`${perCard()}<div class="stats">${st.map(([l,v,c])=>`<div class="stat"${l==='Net position'?' style="grid-column:1/-1"':''}><small>${l}</small><b class="${c||''}" ${c==='ac'?'style="color:var(--ac)"':''}>${v}</b></div>`).join('')}</div>
+ ${bkNudge()}${closeCard()}${loanCard()}<div class="row" style="margin-bottom:8px"><button class="b" data-a="spend">− Record expense</button><button class="b" data-a="draw">💸 I took cash out</button></div><button class="b wide" style="margin:0 0 4px" data-a="cash">± Add / remove cash</button><button class="b wide" style="margin:0 0 4px" data-a="loan">🏦 Record a loan I took</button><button class="b wide" style="margin:0 0 4px" data-a="close">🔒 Close the day (count the till)</button><button class="b wide" style="margin:0 0 4px" data-a="log">🔍 Activity log — who did what, and when</button><h3>Recent activity</h3>${F.length?F.map(feedRow).join(''):'<p class="mu">Nothing recorded yet. Your sales, payments and restocks will show up here.</p>'}
+ ${potCard()}${bestCard()}<h3>Backup & security</h3>${bkCard()}<h3>Settings</h3><div class="card"><label>Store name</label><input id="sn" value="${e(S.cfg.store)}"><label>Currency symbol</label><input id="sc" maxlength="3" value="${e(S.cfg.currency)}"><label>Colour</label><div class="row" style="margin-bottom:8px">${Object.entries(ACC).map(([k,c])=>`<button class="q" style="background:${c};border-color:${c};${(S.cfg.accent||ACC.Sky)===c?'outline:3px solid var(--tx)':''}" data-a="acc" data-id="${c}" aria-label="${k}"></button>`).join('')}</div><button class="b wide" style="margin:0 0 8px" data-a="mode">${S.cfg.light?'🌙 Dark mode':'☀️ Light mode'}</button><label>Quick cash buttons (notes customers hand you, separated by commas)</label><input id="sq" value="${e(S.cfg.notes||'1,2,5,10,20,50,100')}"><label>Remind me when dinau is older than (days)</label><input id="sr" type="number" inputmode="numeric" min="1" value="${S.cfg.remindDays||7}"><button class="b wide" style="margin:0 0 8px" data-a="notif">${S.cfg.notify?'🔕 Turn off phone notifications':'🔔 Turn on phone notifications'}</button>
+ <div class="row"><button class="b" data-a="exp">Export plain file</button><button class="b" data-a="imp">Restore backup</button></div><button class="b wide" data-a="csv">📄 Export transactions (spreadsheet)</button>
+ <button class="b wide" id="inst" data-a="install" hidden>📲 Install app</button><input type="file" id="file" accept="application/json,.json" hidden></div>`;
+ $('sn').oninput=ev=>{S.cfg.store=ev.target.value.slice(0,40)||'My Store';save();header()};
+ $('sr').oninput=ev=>{S.cfg.remindDays=Math.max(1,parseInt(ev.target.value)||7);save();header()};
+ $('sc').oninput=ev=>{S.cfg.currency=ev.target.value.slice(0,3);save();header()};$('sq').oninput=ev=>{S.cfg.notes=ev.target.value;save()};
+ $('file').onchange=importFile;$('inst').hidden=!dp}
+function pst(){const lim=per?ymd(new Date(Date.now()-(per-1)*864e5)):'0000',R={s:0,g:0,x:0,n:0,lo:0,wo:0,dr:0,st:0,li:0,lb:0,lp:0,dc:0,rf:0,rc:{cash:0,mobile:0},cat:{}};
+ const LN={};for(const t of S.txns){if(t.type==='loan')LN[t.id]=t;if(t.date<lim)continue;const a=t.amount;
+  if(t.type==='sale'){R.s+=t.total;R.n++;{const mb=Math.min(t.mob||0,t.paidNow);if(mb>0){R.rc.mobile+=mb;R.rc.cash+=t.paidNow-mb}else R.rc[mt(t)]+=t.paidNow}for(const l of t.lines){R.g+=(l.price-l.cost)*l.qty;R.dc+=((l.list||l.price)-l.price)*l.qty}}
+  else if(t.type==='payment')R.rc[mt(t)]+=a;
+  else if(t.type==='expense'){R.x+=a;const k=CATS.includes(t.cat)?t.cat:'Other';R.cat[k]=(R.cat[k]||0)+a}
+  else if(t.type==='writeoff')R.wo+=a;else if(t.type==='draw')R.dr+=a;
+  else if(t.type==='refund'){R.s-=t.total;R.rf+=t.total;for(const l of t.lines)R.g-=(l.price-l.cost)*l.qty}
+  else if(t.type==='loan')R.lb+=a;else if(t.type==='loanpay'){R.lp+=a;const l=LN[t.loanId];if(l){const o=l.owe||l.amount;R.li+=a*(o-l.amount)/o}}
+  else if(t.type==='restock'){if(t.note!=='Opening stock')R.st+=t.total}
+  else if(t.type==='adjust')for(const l of t.lines)R.lo-=l.qty*(l.cost??(S.items.find(i=>i.id===l.itemId)||{}).cost??0)}
+ R.lo=r2(R.lo);R.li=r2(R.li);return R}
+function perCard(){const p=pst(),np=r2(p.g-p.x-p.lo-p.wo-p.li),P=[['Sales',m(p.s)],['Gross profit',m(p.g),'ok'],['Expenses',m(p.x),'bad'],['Stock losses',m(p.lo),'bad'],['Bad debts written off',m(p.wo),'bad'],...(p.li>0?[['Loan interest',m(p.li),'bad']]:[]),...(p.rf>0?[['Returns refunded',m(p.rf),'bad']]:[]),...(p.dc>0?[['Discounts given',m(p.dc),'wr']]:[])],
+ W=[['Stock bought',p.st],...CATS.map(k=>[k,p.cat[k]||0]),['Taken by you',p.dr],['Loan interest',p.li],['Loan principal repaid',r2(p.lp-p.li)]].filter(x=>x[1]>0),mx=Math.max(1,...W.map(x=>x[1]));
+ return`<div class="row" style="margin-bottom:8px">${[[1,'Today'],[7,'7 days'],[30,'30 days'],[0,'All']].map(([d,l])=>`<button class="b" style="${per===d?'background:var(--ac);color:#04121f;border-color:var(--ac)':''}" data-a="per" data-d="${d}">${l}</button>`).join('')}</div>
+ <div class="stats">${P.map(([l,v,c],i)=>`<div class="stat"${i==P.length-1&&P.length%2?' style="grid-column:1/-1"':''}><small>${l}</small><b class="${c||''}">${v}</b></div>`).join('')}</div>
+ <div class="stat" style="margin-bottom:8px"><small>Net profit · ${p.n} sale${p.n==1?'':'s'} (after expenses, stock losses${p.li?', loan interest':''} and bad debts)</small><b class="${np<0?'bad':'ok'}">${m(np)}</b></div>
+ <div class="stat" style="margin-bottom:6px"><small>Owner drawings — cash you took out. Not an expense, not in profit.</small><b>${m(p.dr)}</b></div>
+ ${p.lb||p.lp?`<div class="stat" style="margin-bottom:6px"><small>Loans this period — borrowed ${m(p.lb)}, repaid ${m(p.lp)}. Borrowing is not income and repaying is not an expense; only the interest counts against profit.</small><b>${m(C.loanOwed)} still owing</b></div>`:''}
+ ${W.length?`<h3>Where your money went</h3><div class="card">${W.map(([k,v])=>`<div style="margin:6px 0"><div class="row"><span class="grow">${e(k)}</span><b>${m(v)}</b></div><div style="height:6px;border-radius:9px;background:var(--in)"><div style="height:6px;border-radius:9px;background:var(--al);width:${Math.max(3,Math.round(v/mx*100))}%"></div></div></div>`).join('')}</div>`:''}
+ <h3>Money by method</h3><div class="card"><div class="line mu"><span class="grow"></span><span class="amt">Received</span><span class="amt">Balance now</span></div>${MS.map(k=>`<div class="line"><b class="grow">${ML[k]}</b><span class="amt">${m(p.rc[k])}</span><b class="amt">${m(C.m[k])}</b></div>`).join('')}<div class="mu" style="font-size:12px;margin-top:6px">Balance = received − paid out from that method. Compare it with your tin and your mobile banking.</div></div><h3>All time</h3>`}
+function feedRow(t){const c=t.customerId&&cu(t.customerId);let lb,sub='',amt,cl='';
+ const ls=()=>t.lines.map(l=>`${l.qty}× ${l.name}`).join(', ');
+ if(t.type==='sale'){lb=c?'Sale · '+c.name:'Cash sale';sub=ls();const u=r2(t.total-t.paidNow);if(u>0)sub+=` — ${m(u)} on dinau`;amt=m(t.total);cl='ok'}
+ else if(t.type==='payment'){lb='Payment · '+(c?c.name:'');amt=m(t.amount);cl='ok'}
+ else if(t.type==='restock'){lb=t.note==='Opening stock'?'Opening stock':'Restock';sub=t.lines.map(l=>`${l.qty}× ${l.name} @ ${m(l.cost)}`).join(', ');amt='−'+m(t.total);cl='bad'}
+ else if(t.type==='cash'){lb=t.amount<0?'Cash taken out':'Cash added';sub=t.note||'';amt=m(t.amount);cl=t.amount<0?'bad':'ok'}
+ else if(t.type==='expense'){lb='Expense · '+(t.cat||'Other');sub=t.note||'';amt='−'+m(t.amount);cl='bad'}
+ else if(t.type==='writeoff'){lb='Bad debt · '+(c?c.name:'');sub=t.note||'Written off';amt=m(t.amount);cl='bad'}
+ else if(t.type==='draw'){lb='Owner drawing';sub=t.note||'';amt='−'+m(t.amount);cl='bad'}
+ else if(t.type==='refund'){lb='Return'+(c?' · '+c.name:'');sub=ls()+(t.refundTo==='dinau'?' · taken off dinau':'');amt='−'+m(t.total);cl='bad'}
+ else if(t.type==='loan'){lb='Loan · '+(t.lender||'');sub=t.note||(t.owe>t.amount?'Pay back '+m(t.owe):'')+(t.due?' · due '+t.due:'');amt='+'+m(t.amount);cl='ok'}
+ else if(t.type==='loanpay'){lb='Loan repayment · '+(t.lender||'');sub=t.note||'';amt='−'+m(t.amount);cl='bad'}
+ else{lb='Stock adjust';sub=ls();amt=''}
+ if(MV.includes(t.type)&&mt(t)!=='cash')sub+=(sub?' · ':'')+ML[mt(t)];
+ if(t.mob>0)sub+=(sub?' · ':'')+m(t.mob)+' by mobile';
+ return`<div class="card item"><div class="grow"><b>${e(lb)}</b><div class="mu">${e(t.date)}${t.ts?' '+new Date(t.ts).toTimeString().slice(0,5):''}${t.by?' · '+e(t.by):''}${t.ts&&ymd(new Date(t.ts))!==t.date?' · ⚠️ date changed':''}${sub?' · '+e(sub):''}</div></div><b class="${cl}">${amt}</b>${RT[t.type]?`<button class="q" data-a="rc" data-id="${t.id}">🧾</button>`:''}${t.type==='sale'?`<button class="q" data-a="ret" data-id="${t.id}" aria-label="Return items">↩️</button>`:''}${['loan','loanpay','refund'].includes(t.type)?'':`<button class="q" data-a="et" data-id="${t.id}">✎</button>`}<button class="q" data-a="dt" data-id="${t.id}">×</button></div>`}
+
+/* ---- plain export + restore ---- */
+async function exportBackup(){const j=JSON.stringify({app:'SME Tracker',version:1,exportedAt:new Date().toISOString(),...S},null,2);
+ if(await deliver(new File([j],'sme-tracker-backup-'+today()+'.json',{type:'application/json'}),'SME Tracker backup')){markBk(false);toast('Backup saved')}}
+function importFile(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();
+ r.onload=async()=>{try{let d=JSON.parse(r.result),k=null,env=null;
+  if(d.format==='smebak'){env=d;const v=await sheet({title:'Encrypted backup',msg:'Enter the passphrase you used for this backup.',fields:[{label:'Passphrase',type:'password'}],ok:'Decrypt'});if(!v)return;
+   try{k=await derive(v[0],unb64(env.salt),env.iter);d=await unseal(k,env,AAD)}catch(x){return toast('Wrong passphrase, or the file is damaged')}}
+  if(!Array.isArray(d.items)||!Array.isArray(d.txns)||!Array.isArray(d.customers))throw 0;
+  if(!await ask('Restore this backup?','This replaces ALL current data.','Restore'))return;
+  S={cfg:{...fresh().cfg,...d.cfg},items:d.items,customers:d.customers,txns:d.txns,log:S.log.length?S.log:(d.log||[])};numb();L('BACKUP RESTORED',d.txns.length+' transactions');
+  if(k){localStorage.setItem(BK,JSON.stringify({salt:env.salt,iter:env.iter,ver:await seal(k,'ok',VAD),last:today(),auto:true}));await kset(k)}
+  cart=[];selC='';paid=null;commit();toast('Backup restored')}catch(x){toast('Not a valid SME Tracker backup')}};
+ r.readAsText(f);ev.target.value=''}
+
+/* ---- actions ---- */
+function sheet({title,msg,fields=[],ok='OK',danger}){return new Promise(res=>{const o=$('sh');
+ o.innerHTML=`<form><b>${e(title)}</b>${msg?`<p class="mu">${e(msg)}</p>`:''}${fields.map((f,i)=>`<label>${e(f.label)}</label>${f.type==='select'?`<select name="f${i}">${f.opts.map(([k,l])=>`<option value="${e(k)}"${k===f.value?' selected':''}>${e(l)}</option>`).join('')}</select>`:`<input name="f${i}" ${f.type==='pin'?'type="password" inputmode="numeric" maxlength="4" autocomplete="off"':'type="'+(f.type||'text')+'"'}${f.type==='number'?' inputmode="decimal" step="any"':''} value="${e(f.value??'')}">`}`).join('')}<div class="row" style="margin-top:8px"><button type="button" class="b" id="shx">Cancel</button><button class="b ${danger?'bad':'pri'}">${e(ok)}</button></div></form>`;
+ o.classList.add('show');const fm=o.firstChild,done=v=>{o.classList.remove('show');res(v)};
+ fm.onsubmit=ev=>{ev.preventDefault();done(fields.map((_,i)=>fm['f'+i].value))};$('shx').onclick=()=>done(null);o.onclick=ev=>{if(ev.target===o)done(null)};
+ if(fields.length)setTimeout(()=>fm.f0.focus(),60)})}
+const ask=(title,msg,ok)=>sheet({title,msg,ok,danger:true}).then(v=>!!v);
+const dup=(n,skip)=>S.customers.find(c=>c.id!==skip&&c.name.trim().toLowerCase()===n.trim().toLowerCase());
+async function newCust(){const v=await sheet({title:'New customer',fields:[{label:'Name'},{label:'Phone (optional)',type:'tel'},{label:'Credit limit (0 = no limit)',type:'number',value:0}],ok:'Add customer'});if(!v)return null;const n=v[0].trim();if(!n){toast('Enter a name');return null}
+ const d=dup(n);if(d&&!await ask('Customer already exists',`You already have "${d.name}"${d.phone?' ('+d.phone+')':''}${bal(d.id)>0?', who owes '+m(bal(d.id)):''}. Add another one? Add a phone number or surname to tell them apart.`,'Add anyway'))return null;
+ const c={id:uid(),name:n,phone:v[1].trim(),limit:Math.max(0,num(v[2])||0),created:today()};S.customers.push(c);save();return c}
+const A={
+ add(id){const it=S.items.find(x=>x.id===id);if(!it||qty(id)-inCart(id)<=0)return;const l=cart.find(x=>x.itemId===id);l?l.qty++:cart.push({itemId:id,name:it.name,qty:1,price:it.price,cost:it.cost});if(q){q='';$('q').value=''}updSell()},
+ inc(_,i){const l=cart[i];if(l.itemId&&qty(l.itemId)-inCart(l.itemId)<=0)return toast('No more in stock');l.qty++;updSell()},
+ dec(_,i){if(--cart[i].qty<=0)cart.splice(i,1);updSell()},
+ async custom(){const v=await sheet({title:'Custom item',msg:'One-off sale, not tracked in stock.',fields:[{label:'Item name'},{label:'Price',type:'number'},{label:'Your cost (optional)',type:'number'}],ok:'Add to cart'});if(!v)return;const n=v[0].trim(),p=num(v[1]);if(!n||p===null||p<0)return toast('Enter a name and price');cart.push({itemId:null,name:n,qty:1,price:p,cost:Math.max(0,num(v[2])||0)});updSell()},
+ full(){paid=null;updSell()},zero(){paid='0';$('paid').value='0';hint()},clear(){cart=[];paid=null;updSell()},
+ gostock(){tab='stock';render()},
+ async done(){if(!cart.length)return toast('Cart is empty');const t=tot(),p=pv(),u=r2(t-p);
+  if(u>0&&!selC)return toast('Pick a customer to record dinau');
+  for(const l of cart)if(l.itemId&&l.qty>qty(l.itemId))return toast('Not enough '+l.name);
+  const cc=cu(selC),bl=selC?bal(selC):0;
+  if(u>0&&cc&&cc.limit>0&&bl+u>cc.limit&&!await ask('Over credit limit',`${cc.name} would owe ${m(bl+u)} (limit ${m(cc.limit)}). Sell on dinau anyway?`,'Sell anyway'))return;
+  let mob=0;if(meth==='split'&&p>0){const sv=await sheet({title:'Split payment',msg:'Customer is paying '+m(p)+'. How much of it is by mobile banking? The rest is cash.',fields:[{label:'Paid by mobile banking',type:'number',value:r2(p/2)}],ok:'Continue'});if(!sv)return;mob=num(sv[0]);if(mob===null||mob<0||mob>p)return toast('Mobile amount must be between 0 and '+m(p))}
+  const lw=cart.filter(l=>l.price<l.cost);if(lw.length&&!await ask('Selling below cost',lw.map(l=>l.name).join(', ')+' is priced below what you paid. Continue?','Continue'))return;
+  add({id:(lastSale=uid()),ts:Date.now(),date:today(),type:'sale',customerId:selC||null,lines:cart.map(l=>({itemId:l.itemId,name:l.name,qty:l.qty,price:l.price,cost:l.cost,list:l.list})),total:t,paidNow:p,amount:0,note:'',method:p>0&&meth!=='split'?meth:'cash',mob:mob>0?r2(mob):0});meth='cash';
+  const g=paid===null?t:(+paid||0),ch=Math.max(0,r2(g-t));cart=[];paid=null;selC='';commit();ch>0?pop('💵 Give change',m(ch),6000):pop('✅ Sale done',u>0?m(u)+' on dinau':m(p)+' in',1600)},
+ saveItem(){const n=$('fn').value.trim(),c=num($('fc').value),p=num($('fp').value),l=Math.max(0,Math.floor(num($('fl').value)||0));
+  if(!n)return toast('Enter an item name');if(c===null||p===null||c<0||p<0)return toast('Enter cost and sell price');
+  if(editId){const o=S.items.find(i=>i.id===editId);if(o.name!==n||o.cost!==c||o.price!==p||o.low!==l)L('ITEM EDITED',`${o.name}: cost ${o.cost}→${c}, price ${o.price}→${p}, alert ${o.low}→${l}${o.name!==n?', renamed '+n:''}`);Object.assign(o,{cat:$('fk').value.trim(),name:n,cost:c,price:p,low:l,ico:$('fe').value.trim()})}
+  else{const it={id:uid(),name:n,cost:c,price:p,low:l,ico:$('fe').value.trim(),cat:$('fk').value.trim(),created:today()};S.items.push(it);L('ITEM ADDED',n+' cost '+c+', price '+p);const k=Math.floor(num($('fq').value)||0);
+   if(k>0)add({id:uid(),ts:Date.now(),date:today(),type:'restock',customerId:null,lines:[{itemId:it.id,name:n,qty:k,cost:c}],total:r2(k*c),paidNow:0,amount:0,note:'Opening stock'})}
+  editId=null;commit();toast(p<c?'Saved — warning: sell price is below cost':'Item saved')},
+ cancelEdit(){editId=null;render()},ed(id){editId=id;render();scrollTo(0,0)},
+ async rs(id){const it=S.items.find(x=>x.id===id),v=await sheet({title:'Restock '+it.name,fields:[{label:'Quantity bought',type:'number'},{label:'Cost per unit (this purchase)',type:'number',value:it.cost}],ok:'Restock'});if(!v)return;
+  const k=Math.floor(num(v[0])||0),c=num(v[1]);if(k<=0||c===null||c<0)return toast('Enter quantity and cost');const n0=Math.max(0,qty(id));it.cost=n0>0?r2((n0*it.cost+k*c)/(n0+k)):c;
+  add({id:uid(),ts:Date.now(),date:today(),type:'restock',customerId:null,lines:[{itemId:id,name:it.name,qty:k,cost:c}],total:r2(k*c),paidNow:0,amount:0,note:'Restock'});commit();toast(`+${k} ${it.name}`)},
+ async di(id){const it=S.items.find(x=>x.id===id);if(await ask('Delete '+it.name+'?','Past transactions stay in the ledger.','Delete')){L('ITEM DELETED',it.name+' (cost '+it.cost+', price '+it.price+', '+qty(id)+' in stock)');S.items=S.items.filter(x=>x.id!==id);cart=cart.filter(l=>l.itemId!==id);commit()}},
+ tog(id){openC=openC===id?null:id;render()},
+ async newc(){if(await newCust())commit()},
+ async pay(id){const b=bal(id),v=await sheet({title:'Record payment',msg:'They owe '+m(Math.max(b,0))+'.',fields:[{label:'Amount',type:'number',value:b>0?b.toFixed(2):''},{label:'Date',type:'date',value:today()},{label:'Received by',type:'select',opts:MS.map(k=>[k,ML[k]]),value:'cash'}],ok:'Save payment'});if(!v)return;
+  const a=num(v[0]);if(!a||a<=0)return toast('Enter an amount');if(!/^\d{4}-\d{2}-\d{2}$/.test(v[1]))return toast('Pick a date');
+  if(a>Math.max(b,0)+.005&&!await ask('More than they owe',`${m(a)} is more than ${m(Math.max(b,0))}. Record the extra as advance credit?`,'Record'))return;
+  add({id:uid(),ts:Date.now(),date:v[1],type:'payment',customerId:id,lines:[],total:0,paidNow:0,amount:r2(a),note:'',method:v[2]});commit();toast(bal(id)>0?`${m(a)} received · ${m(bal(id))} still owed`:`${m(a)} received · all paid up 🎉`)},
+ nsale(id){selC=id;tab='sell';render();scrollTo(0,0)},
+ async editc(id){const c=cu(id),v=await sheet({title:'Edit customer',fields:[{label:'Name',value:c.name},{label:'Phone',type:'tel',value:c.phone},{label:'Credit limit (0 = no limit)',type:'number',value:c.limit||0}],ok:'Save'});if(!v)return;if(v[0].trim()&&dup(v[0],id)&&!await ask('Name already used',`Another customer is called "${v[0].trim()}". Keep this name anyway?`,'Keep'))return;if(v[0].trim())c.name=v[0].trim();c.phone=v[1].trim();c.limit=Math.max(0,num(v[2])||0);commit()},
+ async delc(id){const c=cu(id),b=bal(id),T=S.txns.filter(t=>t.customerId===id),cs=T.reduce((s,t)=>s+(t.type==='sale'?t.paidNow:t.type==='payment'?t.amount:0),0);if(!await ask('Delete '+c.name+'?',(b>0?`They owe you ${m(b)}. `:b<0?`You owe them ${m(-b)} (overpaid). `:'')+`It also erases their ${T.length} transaction${T.length==1?'':'s'}: cash in hand drops by ${m(cs)}, sales totals shrink and sold stock returns. Only do this for test or duplicate customers.`,'Delete'))return;
+  L('CUSTOMER DELETED',c.name+' (owed '+m(b)+'; '+T.length+' transactions erased)');S.customers=S.customers.filter(x=>x.id!==id);S.txns=S.txns.filter(t=>t.customerId!==id);if(selC===id)selC='';openC=null;commit()},
+ async dt(id){const t=S.txns.find(x=>x.id===id);if(!t||!await ask('Delete this transaction?','Stock, cash and balances will be recalculated.','Delete'))return;
+  if(t.type==='sale'&&S.txns.some(x=>x.type==='refund'&&x.saleId===t.id))return toast('Delete the return first, then the sale');if(t.type==='loan'&&S.txns.some(x=>x.type==='loanpay'&&x.loanId===t.id))return toast('Delete the repayments first, then the loan');const old=S.txns;S.txns=old.filter(x=>x.id!==id);C=calc();const hit=(t.lines||[]).map(l=>S.items.find(i=>i.id===l.itemId)).find(i=>i&&qty(i.id)<0);
+  if(hit){S.txns=old;C=calc();return toast('Can’t delete: '+hit.name+' stock would go negative')}L('DELETED',sum(t));commit()},
+ async disc(){if(!cart.length)return toast('Add items first');const t=tot(),v=await sheet({title:'Discount',msg:'Total is '+m(t)+'. Enter a percentage OR an amount off the whole sale.',fields:[{label:'Percent off (for example 10)',type:'number'},{label:'Or amount off',type:'number'}],ok:'Apply'});if(!v)return;
+  const pc=num(v[0])||0,am=num(v[1])||0;let f;if(pc>0&&pc<=100)f=1-pc/100;else if(am>0&&am<t)f=(t-am)/t;else return toast('Enter a % from 1 to 100, or an amount smaller than the total');
+  cart.forEach(l=>{l.list=l.list??l.price;l.price=r2(l.price*f)});paid=null;updSell();toast('Discount applied')},
+ undo(){if(!lastSale)return;const id=lastSale;lastSale=null;A.dt(id)},
+ async ret(id){const t=S.txns.find(x=>x.id===id);if(!t||t.type!=='sale')return;const dn={};for(const x of S.txns)if(x.type==='refund'&&x.saleId===id)for(const l of x.lines){const k=l.itemId||l.name;dn[k]=(dn[k]||0)+l.qty}
+  const R=t.lines.map(l=>({l,max:l.qty-(dn[l.itemId||l.name]||0)})).filter(x=>x.max>0);if(!R.length)return toast('Everything on this sale was already returned');const c=t.customerId&&cu(t.customerId);
+  const v=await sheet({title:'Return items',msg:'Enter how many are coming back. They go back on the shelf and your sales and profit go down.',fields:[...R.map(x=>({label:x.l.name+' — returning (max '+x.max+')',type:'number',value:0})),{label:'Give the money back as',type:'select',opts:[['cash','Cash'],['mobile','Mobile banking'],...(c?[['dinau','Take it off what they owe']]:[])],value:'cash'}],ok:'Save return'});if(!v)return;
+  const L2=[];R.forEach((x,i)=>{const q=Math.floor(num(v[i])||0);if(q>0)L2.push({itemId:x.l.itemId,name:x.l.name,qty:Math.min(q,x.max),price:x.l.price,cost:x.l.cost})});if(!L2.length)return toast('Enter at least one item');
+  const val=r2(L2.reduce((a,l)=>a+l.qty*l.price,0)),to=v[R.length];add({id:uid(),ts:Date.now(),date:today(),type:'refund',saleId:id,customerId:t.customerId||null,lines:L2,total:val,paidNow:0,amount:val,refundTo:to,method:to==='mobile'?'mobile':'cash',note:'Return of '+nm(t)});commit();toast(m(val)+' returned')},
+ async close(){const sp=per;per=1;const p=pst();per=sp;const exp=C.cash,v=await sheet({title:'Close the day',msg:`Today: ${m(p.s)} sales (${p.n}), ${m(p.g)} gross profit, ${m(p.x)} expenses. The app expects ${m(exp)} cash in the till. Count it and enter what is really there.`,fields:[{label:'Cash you counted',type:'number'},{label:'Note (optional)'}],ok:'Save cash-up'});if(!v)return;
+  const a=num(v[0]);if(a===null||a<0)return toast('Enter the cash you counted');const d=r2(a-exp);if(d)add({id:uid(),ts:Date.now(),date:today(),type:'cash',customerId:null,lines:[],total:0,paidNow:0,amount:d,note:'Cash-up '+(d<0?'short':'over')+(v[1].trim()?' · '+v[1].trim():'')});
+  (S.cfg.closes=S.cfg.closes||[]).push({date:today(),by:who||'?',exp,counted:r2(a),diff:d});S.cfg.closes=S.cfg.closes.slice(-60);L('CASH-UP','counted '+m(a)+' expected '+m(exp));commit();
+  const txt=`${S.cfg.store} — ${today()}\nSales: ${m(p.s)} (${p.n})\nGross profit: ${m(p.g)}\nExpenses: ${m(p.x)}\nCash counted: ${m(a)}${d?(d<0?' (short ':' (over ')+m(Math.abs(d))+')':' (balanced)'}`;
+  if(await ask('Day closed',d?(d<0?'The till is short by ':'The till is over by ')+m(Math.abs(d))+'. It was recorded so your cash matches the count.':'The till balances. 👍','Share summary')){try{if(navigator.share)await navigator.share({text:txt});else{await navigator.clipboard.writeText(txt);toast('Summary copied')}}catch(x){}}},
+ count(){const o=$('sh'),cl=()=>o.classList.remove('show'),Ls=[...S.items].sort((a,b)=>a.name.localeCompare(b.name));
+  o.innerHTML=`<form><b>🔢 Count stock</b><p class="mu">Count the shelf and type the real number. Leave blank anything you did not count.</p><input id="ck" type="search" placeholder="Search items…"><div style="max-height:52vh;overflow:auto;margin:6px 0">${Ls.map(i=>`<div class="line" data-k="${e((i.name+' '+(i.cat||'')).toLowerCase())}"><span class="grow">${e(i.name)}<small class="mu"> app says ${qty(i.id)}</small></span><input class="cn" data-id="${i.id}" type="number" inputmode="numeric" min="0" style="width:84px;margin:0"></div>`).join('')||'<p class="mu">No items yet.</p>'}</div><div class="two"><button type="button" class="b" id="shx">Cancel</button><button class="b pri">Save count</button></div></form>`;
+  o.classList.add('show');$('shx').onclick=cl;o.onclick=ev=>{if(ev.target===o)cl()};
+  $('ck').oninput=ev=>{const w=ev.target.value.toLowerCase().split(/\s+/).filter(Boolean);o.querySelectorAll('[data-k]').forEach(r=>{r.style.display=w.every(x=>r.dataset.k.includes(x))?'':'none'})};
+  o.firstChild.onsubmit=ev=>{ev.preventDefault();const ln=[];o.querySelectorAll('.cn').forEach(inp=>{if(inp.value==='')return;const it=S.items.find(x=>x.id===inp.dataset.id),k=Math.floor(num(inp.value));if(!it||k===null||isNaN(k)||k<0)return;const d=k-qty(it.id);if(d)ln.push({itemId:it.id,name:it.name,qty:d,cost:it.cost})});
+   if(!ln.length){cl();return toast('Count matches — nothing to fix')}add({id:uid(),ts:Date.now(),date:today(),type:'adjust',customerId:null,lines:ln,total:0,paidNow:0,amount:0,note:'Stock count'});cl();commit();toast(ln.length+' item'+(ln.length>1?'s':'')+' corrected')}},
+ async loan(){const v=await sheet({title:'Record a loan',msg:'Money you borrowed from a bank, a person or a lender. It is not income or profit. Any interest counts as a cost as you repay it.',fields:[{label:'Lender (who gave it)'},{label:'Amount you received',type:'number'},{label:'Total to pay back (leave empty if no interest)',type:'number'},{label:'Due date (optional)',type:'date',value:''},{label:'Received as',type:'select',opts:MS.map(k=>[k,ML[k]]),value:'cash'},{label:'Note (optional)'}],ok:'Save loan'});if(!v)return;
+  const a=num(v[1]),o=String(v[2]).trim()===''?a:num(v[2]);if(!v[0].trim())return toast('Enter who lent it');if(!a||a<=0)return toast('Enter the amount you received');if(o===null||o<a)return toast('Pay-back total can’t be less than what you received');
+  const id=uid();add({id,ts:Date.now(),date:today(),type:'loan',loanId:id,lender:v[0].trim().slice(0,40),customerId:null,lines:[],total:0,paidNow:0,amount:r2(a),owe:r2(o),due:/^\d{4}-\d{2}-\d{2}$/.test(v[3])?v[3]:'',note:v[5].trim(),method:v[4]});commit();toast(m(a)+' loan recorded')},
+ async lpay(id){const l=C.loans[id];if(!l)return;const b=r2(l.owe-l.paid);if(b<=0)return;const v=await sheet({title:'Repay '+l.lender,msg:'Still owing '+m(b)+'.',fields:[{label:'Amount you are paying',type:'number',value:b},{label:'Paid from',type:'select',opts:MS.map(k=>[k,ML[k]]),value:'cash'},{label:'Note (optional)'}],ok:'Save repayment'});if(!v)return;
+  const a=num(v[0]);if(!a||a<=0)return toast('Enter an amount');if(a>b+.005)return toast('That is more than the '+m(b)+' still owing');
+  add({id:uid(),ts:Date.now(),date:today(),type:'loanpay',loanId:id,lender:l.lender,customerId:null,lines:[],total:0,paidNow:0,amount:r2(a),note:v[2].trim(),method:v[1]});commit();toast(m(a)+' repayment saved')},
+ async cash(){const v=await sheet({title:'Add or remove cash',msg:'Use a minus sign to take cash out.',fields:[{label:'Amount'},{label:'Note (optional)',value:'Starting cash'}],ok:'Save'});if(!v)return;const a=num(v[0]);if(!a)return toast('Enter an amount');
+  add({id:uid(),ts:Date.now(),date:today(),type:'cash',customerId:null,lines:[],total:0,paidNow:0,amount:r2(a),note:v[1].trim()});commit()},
+ exp:exportBackup,imp(){$('file').click()},
+ async erase(){if(await ask('Erase all data?','Everything on this device will be deleted.','Continue')&&await ask('Really erase everything?','This cannot be undone. Export a backup first if unsure.','Erase all')){S=fresh();localStorage.removeItem(KEY);cart=[];selC='';paid=null;openC=null;render();toast('All data erased')}},
+ per(_,__,b){per=+b.dataset.d;render()},
+ async pr(_,i){const l=cart[i],v=await sheet({title:'Price for '+l.name,msg:'Changes this sale only.',fields:[{label:'Price each',type:'number',value:l.price}],ok:'Set price'});if(!v)return;const p=num(v[0]);if(p===null||p<0)return toast('Enter a price');l.price=p;updSell()},
+ async adjq(id){const it=S.items.find(x=>x.id===id),n=qty(id),v=await sheet({title:'Fix count — '+it.name,msg:`App says ${n}. Enter the real count (damaged, lost, miscounted).`,fields:[{label:'Actual count',type:'number',value:n}],ok:'Update'});if(!v)return;const kk=num(v[0]);if(kk===null||kk<0)return toast('Enter a count');const d=Math.floor(kk)-n;if(!d)return;
+  add({id:uid(),ts:Date.now(),date:today(),type:'adjust',customerId:null,lines:[{itemId:id,name:it.name,qty:d,cost:it.cost}],total:0,paidNow:0,amount:0,note:'Stock count'});editId=null;commit();toast(`${it.name}: ${Math.floor(kk)} in stock`)},
+ bell(){const L=overdue(),o=$('sh'),t=r2(L.reduce((s,x)=>s+x.b,0)),cl=()=>o.classList.remove('show');
+  o.innerHTML=`<form><b>🔔 Dinau reminders</b>${L.length?`<p class="mu">${L.length} customer${L.length>1?'s':''} owing ${S.cfg.remindDays||7}+ days · ${m(t)} total. Tap one to open.</p>`+L.map(x=>`<div class="line head" data-a="gocust" data-id="${x.c.id}"><div class="grow"><b>${e(x.c.name)}</b><div class="mu">${x.d} days owed</div></div><b class="wr">${m(x.b)}</b></div>`).join(''):'<p class="mu">Nobody is overdue. 🎉</p>'}<button type="button" class="b wide" id="shx">Close</button></form>`;
+  o.classList.add('show');$('shx').onclick=cl;o.onclick=ev=>{if(ev.target===o)cl()}},
+ gocust(id){$('sh').classList.remove('show');tab='dinau';openC=id;cq='';render();scrollTo(0,0)},
+ async notif(){if(S.cfg.notify){S.cfg.notify=false;save();render();return toast('Phone notifications off')}
+  if(!('Notification' in window))return toast('This browser does not support notifications');
+  if(await Notification.requestPermission()!=='granted')return toast('Allow notifications in your browser settings');
+  S.cfg.notify=true;S.cfg.lastNotify='';save();render();toast('Phone notifications on');notifyDue()},
+ async et(id){const t=S.txns.find(x=>x.id===id);if(!t)return;const ty=t.type,F=[{label:'Date',type:'date',value:t.date}],tl=ty==='sale'||ty==='restock';
+  if(ty==='sale')F.push({label:'Paid now',type:'number',value:t.paidNow},{label:'Customer',type:'select',opts:[['','Cash sale'],...S.customers.map(c=>[c.id,c.name])],value:t.customerId||''});
+  if(tl)t.lines.forEach(l=>F.push({label:l.name+' — qty',type:'number',value:l.qty},{label:l.name+(ty==='sale'?' — price each':' — cost each'),type:'number',value:ty==='sale'?l.price:l.cost}));
+  else if(ty==='adjust')t.lines.forEach(l=>F.push({label:l.name+' — change (+/−)',type:'number',value:l.qty}));
+  else{F.push({label:'Amount',type:'number',value:t.amount});if(ty!=='payment')F.push({label:'Note',value:t.note});if(ty==='expense')F.push({label:'Category',type:'select',opts:CATS.map(c=>[c,c]),value:t.cat||'Other'})}
+  const v=await sheet({title:'Edit transaction',msg:'Stock, balances and cash recalculate automatically.',fields:F,ok:'Save changes'});if(!v)return;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(v[0]))return toast('Pick a date');
+  const n=JSON.parse(JSON.stringify(t));n.date=v[0];const bad=()=>toast('Check the numbers you entered');
+  if(tl){const o=ty==='sale'?3:1,L=[];for(let i=0;i<t.lines.length;i++){const q=num(v[o+2*i]),p=num(v[o+2*i+1]);if(q===null||p===null||q<0||p<0)return bad();if(Math.floor(q)>0)L.push({...t.lines[i],qty:Math.floor(q),[ty==='sale'?'price':'cost']:p})}
+   if(!L.length)return toast('No items left — delete it instead');n.lines=L;n.total=r2(L.reduce((s,l)=>s+l.qty*(ty==='sale'?l.price:l.cost),0));
+   if(ty==='sale'){const pd=num(v[1]);if(pd===null||pd<0)return bad();n.paidNow=Math.min(r2(pd),n.total);n.customerId=v[2]||null;if(n.total-n.paidNow>0&&!n.customerId)return toast('Pick a customer for the unpaid part')}}
+  else if(ty==='adjust'){const L=[];for(let i=0;i<t.lines.length;i++){const q=num(v[1+i]);if(q===null)return bad();if(Math.floor(q))L.push({...t.lines[i],qty:Math.floor(q)})}if(!L.length)return toast('No change left — delete it instead');n.lines=L}
+  else{const a=num(v[1]);if(a===null||a===0||(ty!=='cash'&&a<0))return bad();n.amount=r2(a);if(ty!=='payment')n.note=v[2].trim();if(ty==='expense')n.cat=v[3]}
+  const old=S.txns;S.txns=old.map(x=>x.id===id?n:x);C=calc();
+  const hit=[...t.lines,...n.lines].map(l=>S.items.find(i=>i.id===l.itemId)).find(i=>i&&qty(i.id)<0);
+  if(hit){S.txns=old;C=calc();return toast('Not enough stock of '+hit.name)}
+  L('EDITED',sum(t)+'  →  '+sum(n)+(t.date!==n.date?'  (date '+t.date+' → '+n.date+')':''));commit();toast('Transaction updated')},
+ catf(id){catF=id;q='';if($('q'))$('q').value='';cc();grid()},
+ fav(id){const it=S.items.find(x=>x.id===id);if(!it)return;it.fav=!it.fav;save();render();toast(it.fav?'★ '+it.name+' pinned to the top':'Unpinned')},
+ quick(id){cart.push({itemId:null,name:'Misc item',qty:1,price:+id,cost:0});q='';$('q').value='';updSell()},
+ hold(){if(!cart.length)return;held.push({id:uid(),cart,selC,paid,meth,label:lbl(),t:tot()});cart=[];selC='';paid=null;meth='cash';saveHeld();updSell();toast('Order held — serve the next customer')},
+ resume(id){const h=held.find(x=>x.id===id);if(!h)return;held=held.filter(x=>x!==h);if(cart.length)held.push({id:uid(),cart,selC,paid,meth,label:lbl(),t:tot()});
+  cart=h.cart;selC=cu(h.selC)?h.selC:'';paid=h.paid;meth=h.meth;saveHeld();updSell();scrollTo(0,0)},
+ bulk(){const o=$('sh');
+  o.innerHTML=`<form><b>📋 Add many items</b><p class="mu">One item per line: name, cost, sell price, stock, category (optional). You can paste straight from Excel. Example: Rice 1kg, 4.50, 6, 20</p><textarea id="bt" rows="8" placeholder="Rice 1kg, 4.50, 6, 20, Groceries&#10;Cola 1.5L, 5, 7.50, 12, Drinks" style="width:100%;background:var(--in);border:1px solid var(--line);border-radius:10px;padding:11px;color:var(--tx);font:15px ui-monospace,Menlo,monospace;margin:0 0 6px"></textarea><div id="bp" class="mu" style="margin:0 0 8px"></div><div class="two"><button type="button" class="b" id="shx">Cancel</button><button class="b pri" id="bok" disabled>Add items</button></div></form>`;
+  o.classList.add('show');const cl=()=>o.classList.remove('show'),fm=o.firstChild;$('shx').onclick=cl;o.onclick=ev=>{if(ev.target===o)cl()};
+  $('bt').oninput=()=>{const P=parseBulk($('bt').value);$('bok').disabled=!P.ok.length;$('bok').textContent=P.ok.length?'Add '+P.ok.length+' item'+(P.ok.length>1?'s':''):'Add items';
+   $('bp').innerHTML=(P.ok.length?`<span class="ok">${P.ok.length} ready</span>`:'')+(P.dup.length?` · <span class="wr">${P.dup.length} already exist (skipped)</span>`:'')+(P.bad.length?` · <span class="bad">line${P.bad.length>1?'s':''} ${P.bad.slice(0,6).join(', ')} need name, cost and price</span>`:'')};
+  fm.onsubmit=ev=>{ev.preventDefault();const P=parseBulk($('bt').value);if(!P.ok.length)return;const lines=[];
+   for(const x of P.ok){const id=uid();S.items.push({id,name:x.n,cost:x.c,price:x.p,low:3,ico:'',cat:x.g,created:today()});if(x.k>0)lines.push({itemId:id,name:x.n,qty:x.k,cost:x.c})}
+   L('ITEMS ADDED',P.ok.length+' items (bulk)');if(lines.length)add({id:uid(),ts:Date.now(),date:today(),type:'restock',customerId:null,lines,total:r2(lines.reduce((a,l)=>a+l.qty*l.cost,0)),paidNow:0,amount:0,note:'Opening stock'});
+   cl();commit();toast(P.ok.length+' items added')};setTimeout(()=>$('bt').focus(),60)},
+ shop(){const L=S.items.filter(i=>qty(i.id)<=i.low).map(i=>{const n=Math.max(qty(i.id),0),k=Math.max(i.low*3,5)-n;return{i,n,k,c:k*i.cost}}),o=$('sh'),t=r2(L.reduce((a,x)=>a+x.c,0)),txt=S.cfg.store+' — order list '+today()+'\n'+L.map(x=>x.i.name+' x'+x.k).join('\n'),cl=()=>o.classList.remove('show');
+  o.innerHTML=`<form><b>🛒 Order list</b>${L.length?`<p class="mu">Items at or below their low-stock alert. Suggested quantity refills each to 3× its alert (at least 5). Estimated cost ${m(t)}.</p>${L.map(x=>`<div class="line"><span class="grow">${e(x.i.name)}<small class="mu"> have ${x.n}</small></span><b>buy ${x.k}</b></div>`).join('')}`:'<p class="mu">Nothing is running low. 🎉</p>'}<div class="two" style="margin-top:10px"><button type="button" class="b" id="shx">Close</button>${L.length?'<button type="button" class="b pri" id="shc">Share / copy list</button>':''}</div></form>`;
+  o.classList.add('show');$('shx').onclick=cl;o.onclick=ev=>{if(ev.target===o)cl()};
+  if($('shc'))$('shc').onclick=async()=>{try{if(navigator.share)await navigator.share({text:txt});else{await navigator.clipboard.writeText(txt);toast('List copied')}}catch(x){if(x.name!=='AbortError')toast('Could not share')}}},
+ async csv(){const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"',R=[['Receipt','Date','Time','Type','Customer','Items','Total','Paid now','Amount','Method','Note','By']];
+  for(const t of [...S.txns].sort((a,b)=>a.ts-b.ts)){const c=t.customerId&&cu(t.customerId);R.push([t.no||'',t.date,t.ts?new Date(t.ts).toTimeString().slice(0,5):'',t.type,c?c.name:'',(t.lines||[]).map(l=>l.qty+'x '+l.name).join('; '),t.total||'',t.paidNow||'',t.amount||'',mt(t),t.note||'',t.by||''])}
+  if(await deliver(new File(['\ufeff'+R.map(r=>r.map(q).join(',')).join('\r\n')],'sme-transactions-'+today()+'.csv',{type:'text/csv'}),'SME Tracker transactions'))toast('Spreadsheet saved')},
+ install:doInstall};
+function notifyDue(){const L=overdue();if(!L.length||!S.cfg.notify||!('Notification' in window)||Notification.permission!=='granted'||S.cfg.lastNotify===today())return;
+ S.cfg.lastNotify=today();save();const o={body:`${L.length} customer${L.length>1?'s owe':' owes'} you ${m(L.reduce((s,x)=>s+x.b,0))} — longest wait ${L[0].d} days.`,icon:'icon-192.png',tag:'dinau'};
+ navigator.serviceWorker&&navigator.serviceWorker.ready?navigator.serviceWorker.ready.then(r=>r.showNotification('SME Tracker · Dinau reminder',o)).catch(()=>{}):new Notification('SME Tracker · Dinau reminder',o)}
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&$('sh').classList.contains('show')){const x=$('shx');if(x)x.click()}});
+document.addEventListener('click',ev=>{const n=ev.target.closest('nav button');if(n){tab=n.dataset.t;render();scrollTo(0,0);return}
+ const b=ev.target.closest('[data-a]');if(b&&A[b.dataset.a])A[b.dataset.a](b.dataset.id,+b.dataset.i,b)});
+
+/* ---- encrypted backup (AES-256-GCM, key from passphrase via PBKDF2) ---- */
+const BK='sme.tracker.bk',LK='sme.tracker.lock',AAD='SME-TRACKER-BACKUP-1',VAD='SME-TRACKER-VERIFY-1',ITER=600000,te=new TextEncoder(),td=new TextDecoder();
+const jget=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(x){return null}},bkMeta=()=>jget(BK),lkMeta=()=>jget(LK);
+const b64=u=>{u=new Uint8Array(u);let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode(...u.subarray(i,i+8192));return btoa(s)},unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const derive=async(p,salt,it)=>crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt,iterations:it},await crypto.subtle.importKey('raw',te.encode(p.normalize('NFKC')),'PBKDF2',false,['deriveKey']),{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+const seal=async(k,o,aad)=>{const iv=crypto.getRandomValues(new Uint8Array(12));return{iv:b64(iv),ct:b64(await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:te.encode(aad)},k,te.encode(JSON.stringify(o))))}};
+const unseal=async(k,o,aad)=>JSON.parse(td.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(o.iv),additionalData:te.encode(aad)},k,unb64(o.ct))));
+/* the derived key is kept (non-extractable) in IndexedDB so daily backups don't ask for the passphrase again */
+const kdb=()=>new Promise((ok,no)=>{const r=indexedDB.open('sme-keys',1);r.onupgradeneeded=()=>r.result.createObjectStore('k');r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
+const kop=async(mode,fn)=>{try{const d=await kdb();return await new Promise((ok,no)=>{const q=fn(d.transaction('k',mode).objectStore('k'));q.onsuccess=()=>ok(q.result||null);q.onerror=()=>no(q.error)})}catch(x){return null}};
+const kget=()=>kop('readonly',s=>s.get('main')),kset=k=>kop('readwrite',s=>s.put(k,'main'));
+async function passKey(p){const mm=bkMeta();if(!mm)return null;try{const k=await derive(p,unb64(mm.salt),mm.iter);await unseal(k,mm.ver,VAD);return k}catch(x){return null}}
+async function getKey(){let k=await kget();if(k)return k;const v=await sheet({title:'Backup passphrase',fields:[{label:'Passphrase',type:'password'}],ok:'Continue'});if(!v)return null;k=await passKey(v[0]);if(!k){toast('Wrong passphrase');return null}kset(k);return k}
+async function bkFile(){const mm=bkMeta(),k=await getKey();if(!k)return null;const o=await seal(k,{app:'SME Tracker',version:1,exportedAt:new Date().toISOString(),...S},AAD);
+ return new File([JSON.stringify({format:'smebak',v:1,kdf:'PBKDF2-SHA256',iter:mm.iter,salt:mm.salt,...o})],'sme-tracker-'+today()+'.smebak',{type:'application/octet-stream'})}
+/* Proton Drive has no supported third-party upload API yet. Until it does, the file goes out via the phone's share sheet (pick Proton Drive).
+   When Proton releases one, set CLOUD.upload=async file=>{...} and uploads become automatic. */
+const CLOUD={upload:null};
+async function deliver(f,title){if(CLOUD.upload){try{await CLOUD.upload(f);return true}catch(x){}}
+ if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title});return true}catch(x){if(x.name==='AbortError')return false}}
+ const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);return true}
+function markBk(enc){const mm=bkMeta();if(enc&&mm){mm.last=today();localStorage.setItem(BK,JSON.stringify(mm))}S.cfg.backedUp=today();save();dailyCheck();render()}
+const due=()=>{const mm=bkMeta();return !!mm&&mm.auto!==false&&mm.last!==today()};
+function dailyCheck(){const b=$('bkd');if(due()){b.innerHTML='<span>☁️ Daily backup is due.</span><button class="b pri" data-a="backup">Backup now</button>';b.classList.add('show')}else b.classList.remove('show')}
+const bkNudge=()=>S.txns.length&&!bkMeta()?'<div class="card" style="border-color:var(--wr)"><b>Back up your data</b><div class="mu">It only lives on this phone. Set a passphrase so it can be saved safely off the phone.</div><button class="b pri wide" data-a="bkset">Set up encrypted backup</button></div>':'';
+const bkCard=()=>{const mm=bkMeta(),on=mm&&mm.auto!==false;return mm?`<div class="card"><b>☁️ Encrypted backup</b><div class="mu">Last backup: ${mm.last||'never'} · daily reminder ${on?'on':'off'}<br>Saved as a locked .smebak file. Choose Proton Drive in the share sheet.</div><button class="b pri wide" data-a="backup">Backup now</button><div class="row" style="margin-top:8px"><button class="b" data-a="bkauto">Daily reminder: ${on?'on':'off'}</button><button class="b" data-a="imp">Restore</button></div></div>`:`<div class="card"><b>☁️ Encrypted backup</b><div class="mu">Locks your records with one passphrase before they leave this phone.</div><button class="b pri wide" data-a="bkset">Set backup passphrase</button></div>`};
+
+/* ---- who is using the app + tamper-evident activity log ---- */
+let who=sessionStorage.getItem('sme.who')||'';
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)dailyCheck()});
+const hsh=s=>{let a=0xdeadbeef,b=0x41c6ce57;for(let i=0,c;i<s.length;i++){c=s.charCodeAt(i);a=Math.imul(a^c,2654435761);b=Math.imul(b^c,1597334677)}a=Math.imul(a^a>>>16,2246822507)^Math.imul(b^b>>>13,3266489909);b=Math.imul(b^b>>>16,2246822507)^Math.imul(a^a>>>13,3266489909);return(4294967296*(2097151&b)+(a>>>0)).toString(16)};
+const lh=(p,o)=>hsh(p+'|'+o.ts+'|'+o.by+'|'+o.act+'|'+o.txt);
+const L=(act,txt)=>{const g=S.log||(S.log=[]),o={ts:Date.now(),by:who||'?',act,txt:txt||''};o.h=lh(g.length?g[g.length-1].h:'',o);g.push(o)};
+function logBad(){const g=S.log||[],bad=new Set();let p='';g.forEach((o,i)=>{if(o.h!==lh(p,o)||(i&&o.ts<g[i-1].ts-6e4))bad.add(i);p=o.h});return bad}
+const nm=t=>'R-'+String(t.no||0).padStart(5,'0');
+const sum=t=>{const c=t.customerId&&cu(t.customerId);return nm(t)+' '+t.type+' '+(t.type==='sale'?m(t.total)+' ('+t.lines.map(l=>l.qty+'×'+l.name).join(', ')+')':t.lines&&t.lines.length?t.lines.map(l=>l.qty+'× '+l.name).join(', '):m(t.amount))+(c?' · '+c.name:'')+(t.note?' · '+t.note:'')};
+const ACT={refund:'RETURN',loan:'LOAN TAKEN',loanpay:'LOAN REPAYMENT',sale:'SALE',payment:'PAYMENT',restock:'RESTOCK',adjust:'STOCK COUNT FIXED',expense:'EXPENSE',draw:'OWNER DRAWING',writeoff:'DEBT WRITTEN OFF',cash:'CASH ADDED/REMOVED'};
+async function pickWho(){const st=S.cfg.staff||(S.cfg.staff=['Owner']);
+ const v=await sheet({title:'Who is using the app?',msg:'Your name is saved with every sale and change.',fields:[{label:'Pick your name',type:'select',opts:[['','—'],...st.map(n=>[n,n])],value:who},{label:'Or add a new name'}],ok:'Continue'});
+ let n=v?(v[1].trim().slice(0,30)||v[0]):who||'Unnamed';if(!n)return pickWho();
+ const old=st.find(x=>x.toLowerCase()===n.toLowerCase());if(old)n=old;else{st.push(n);who=n;L('STAFF NAME ADDED',n)}
+ who=n;sessionStorage.setItem('sme.who',n);L('SIGNED IN');save();header()}
+
+/* ---- receipts ---- */
+const RT={sale:'Sales receipt',payment:'Payment received',writeoff:'Bad-debt write-off',expense:'Expense voucher',draw:'Owner drawing'};
+function balAt(t){const i=S.txns.indexOf(t);let b=0;S.txns.forEach((x,j)=>{if(x.customerId===t.customerId&&(x.ts<t.ts||(x.ts===t.ts&&j<=i)))b+=x.type==='sale'?x.total-x.paidNow:x.type==='payment'||x.type==='writeoff'?-x.amount:0});return r2(b)}
+function rcData(t){const c=t.customerId?cu(t.customerId):null,d=new Date(t.ts),R=[['No.','R-'+String(t.no||0).padStart(5,'0')],['Date',t.date+' '+pad(d.getHours())+':'+pad(d.getMinutes())]],I=[],T=[];
+ if(c)R.push(['Customer',c.name+(c.phone?' · '+c.phone:'')]);if(t.by)R.push(['By',t.by]);
+ if(t.type==='sale'){t.lines.forEach(l=>I.push([l.qty+' × '+l.name+' @ '+m(l.price),m(l.qty*l.price)]));T.push(['Total',m(t.total),1]);if(t.paidNow>0)T.push(['Paid now ('+ML[mt(t)]+')',m(t.paidNow)]);const u=r2(t.total-t.paidNow);if(u>0)T.push(['On dinau (unpaid)',m(u)])}
+ else{T.push([t.type==='payment'?'Received ('+ML[mt(t)]+')':t.type==='writeoff'?'Debt written off (no cash received)':t.type==='expense'?'Expense · '+(t.cat||'Other')+' ('+ML[mt(t)]+')':'Cash taken out ('+ML[mt(t)]+')',m(t.amount),1]);if(t.note)R.push(['Note',t.note])}
+ if(c)T.push(['Balance owed after this',m(balAt(t))]);
+ return{title:RT[t.type],R,I,T}}
+function rcHTML(t){const x=rcData(t),row=(a,b,s)=>`<div class="rr${s?' rb':''}"><span>${e(a)}</span><span>${e(b)}</span></div>`;
+ return`<div class="rc"><h2>${e(S.cfg.store)}</h2><div class="rt">${x.title}</div>${x.R.map(r=>row(...r)).join('')}${x.I.length?'<hr>'+x.I.map(r=>row(...r)).join(''):''}<hr>${x.T.map(r=>row(...r)).join('')}<div class="rf">Recorded in SME Tracker</div></div>`}
+
+const ACC={Sky:'#38bdf8',Green:'#4ade80',Orange:'#fb923c',Pink:'#f472b6',Purple:'#a78bfa',Gold:'#fbbf24'};
+function theme(){document.documentElement.style.setProperty('--ac',S.cfg.accent||ACC.Sky);document.documentElement.classList.toggle('light',!!S.cfg.light);document.querySelector('meta[name=theme-color]').content=S.cfg.light?'#f4f6fb':'#0b1220'}
+let pt;function pop(a,b,ms){const o=$('pop');o.innerHTML=`<div>${a}</div><b>${e(b)}</b>`;o.classList.remove('show');void o.offsetWidth;o.classList.add('show');clearTimeout(pt);pt=setTimeout(()=>o.classList.remove('show'),ms)}
+$('pop').onclick=()=>$('pop').classList.remove('show');
+Object.assign(A,{
+ given(id){paid=String(id);$('paid').value=id;hint()},
+ acc(id){S.cfg.accent=id;save();theme();render()},
+ mode(){S.cfg.light=!S.cfg.light;save();theme();render()},
+ who(){pickWho()},
+ log(){const bad=logBad(),R=(S.log||[]).map((x,i)=>`<div style="display:block"><b>${e(new Date(x.ts).toLocaleString())}</b> · ${e(x.by)}${bad.has(i)?' · ⚠️ altered or out of order':''}<br><span class="${/DELETED|EDITED/.test(x.act)?'wr':'mu'}">${e(x.act)}</span> ${e(x.txt)}</div>`).slice(-300).reverse().join(''),o=$('sh');
+  o.innerHTML=`<form><b>🔍 Activity log</b><p class="${bad.size?'bad':'ok'}">${bad.size?'⚠️ '+bad.size+' entries look altered or out of time order.':'✔ No edits, gaps or clock changes found in this log.'}</p><div class="hist" style="max-height:60vh">${R||'<p class="mu">Nothing yet.</p>'}</div><button type="button" class="b wide" id="shx">Close</button></form>`;
+  o.classList.add('show');$('shx').onclick=()=>o.classList.remove('show');o.onclick=ev=>{if(ev.target===o)o.classList.remove('show')}},
+ meth(id){meth=id;mthUI()},
+ async spend(){const v=await sheet({title:'Record expense',msg:'Not stock purchases — those are recorded when you restock.',fields:[{label:'Amount',type:'number'},{label:'Category',type:'select',opts:CATS.map(c=>[c,c]),value:'Transport'},{label:'Note (optional)'},{label:'Paid from',type:'select',opts:MS.map(k=>[k,ML[k]]),value:'cash'}],ok:'Save expense'});if(!v)return;const a=num(v[0]);if(!a||a<=0)return toast('Enter an amount');
+  add({id:uid(),ts:Date.now(),date:today(),type:'expense',customerId:null,lines:[],total:0,paidNow:0,amount:r2(a),note:v[2].trim(),cat:v[1],method:v[3]});commit();toast(m(a)+' expense saved')},
+ async draw(){const v=await sheet({title:'I took cash out',msg:'Money you took for yourself. It is not an expense and not profit, so it has its own line.',fields:[{label:'Amount',type:'number'},{label:'Note (optional)'},{label:'Taken from',type:'select',opts:MS.map(k=>[k,ML[k]]),value:'cash'}],ok:'Save'});if(!v)return;const a=num(v[0]);if(!a||a<=0)return toast('Enter an amount');
+  add({id:uid(),ts:Date.now(),date:today(),type:'draw',customerId:null,lines:[],total:0,paidNow:0,amount:r2(a),note:v[1].trim(),method:v[2]});commit();toast(m(a)+' recorded')},
+ async wo(id){const c=cu(id),b=bal(id);if(!c||b<=0)return;const v=await sheet({title:'Write off '+c.name+'?',msg:`Forgive ${m(b)} as a bad debt. It is recorded as a loss and lowers your net profit. No cash moves.`,fields:[{label:'Reason (optional)'}],ok:'Write off',danger:true});if(!v)return;
+  add({id:uid(),ts:Date.now(),date:today(),type:'writeoff',customerId:id,lines:[],total:0,paidNow:0,amount:b,note:v[0].trim()});commit();toast(m(b)+' written off')},
+ rc(id){const t=S.txns.find(x=>x.id===id);if(!t||!RT[t.type])return;const o=$('sh');
+  o.innerHTML=`<form>${rcHTML(t)}<div class="row np" style="margin-top:10px"><button type="button" class="b" id="shx">Close</button><button type="button" class="b" data-a="rsh" data-id="${id}">Share</button><button type="button" class="b pri" onclick="print()">Print / PDF</button></div></form>`;
+  o.classList.add('show');$('shx').onclick=()=>o.classList.remove('show');o.onclick=ev=>{if(ev.target===o)o.classList.remove('show')}},
+ async rsh(id){const t=S.txns.find(x=>x.id===id),x=rcData(t),s=[S.cfg.store,x.title,...x.R.map(r=>r[0]+': '+r[1]),...x.I.map(r=>r.join('  ')),...x.T.map(r=>r[0]+': '+r[1])].join('\n');
+  try{if(navigator.share)await navigator.share({title:x.title,text:s});else{await navigator.clipboard.writeText(s);toast('Receipt copied')}}catch(z){}},
+ async bkset(){const v=await sheet({title:'Backup passphrase',msg:'Pick one passphrase you will remember. It locks your backups on this phone before they go anywhere. If you forget it, nobody can open them, so write it down somewhere safe.',fields:[{label:'Passphrase (8+ characters)',type:'password'},{label:'Repeat passphrase',type:'password'}],ok:'Set passphrase'});if(!v)return;
+  if(v[0].length<8)return toast('Use at least 8 characters');if(v[0]!==v[1])return toast('Passphrases do not match');toast('Setting up…');
+  const salt=crypto.getRandomValues(new Uint8Array(16)),k=await derive(v[0],salt,ITER);localStorage.setItem(BK,JSON.stringify({salt:b64(salt),iter:ITER,ver:await seal(k,'ok',VAD),last:'',auto:true}));await kset(k);dailyCheck();render();toast('Passphrase set — tap Backup now')},
+ async backup(){if(!bkMeta())return A.bkset();const f=await bkFile();if(!f)return;if(await deliver(f,'SME Tracker backup')){markBk(true);toast('Backup made — save it to Proton Drive')}},
+ bkauto(){const mm=bkMeta();mm.auto=mm.auto===false;localStorage.setItem(BK,JSON.stringify(mm));dailyCheck();render()},
+});
+
+/* ---- PWA: service worker + install prompt ---- */
+let dp=null;
+const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.MSStream;
+function banner(){if(standalone||sessionStorage.getItem('sme.ban'))return;
+ if(dp){$('bant').textContent='Install SME Tracker on your home screen to use it offline.';$('banb').style.display='';$('ban').classList.add('show')}
+ else if(ios){$('bant').textContent='To install: tap Share, then “Add to Home Screen”.';$('banb').style.display='none';$('ban').classList.add('show')}}
+async function doInstall(){if(!dp)return;dp.prompt();await dp.userChoice;dp=null;$('ban').classList.remove('show');const i=$('inst');if(i)i.hidden=true}
+addEventListener('beforeinstallprompt',ev=>{ev.preventDefault();dp=ev;banner();const i=$('inst');if(i)i.hidden=false});
+addEventListener('appinstalled',()=>{dp=null;$('ban').classList.remove('show');toast('Installed')});
+$('banb').onclick=doInstall;$('bank').onclick=()=>{sessionStorage.setItem('sme.ban','1');$('ban').classList.remove('show')};
+if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
+if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had)toast('Updated — reopen the app for the new version')});addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+{const qt=new URLSearchParams(location.search).get('tab');if(['sell','stock','dinau','report'].includes(qt))tab=qt}
+theme();banner();render();dailyCheck();if(!who)pickWho();setInterval(dailyCheck,36e5);
+if(overdue().length&&!sessionStorage.getItem('sme.nt')){sessionStorage.setItem('sme.nt','1');toast('🔔 '+overdue().length+' overdue dinau — tap the bell')}
+notifyDue();
+</script>
+</body>
+</html>
