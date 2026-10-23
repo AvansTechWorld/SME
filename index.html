@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" data-mode="light" data-pal="lagoon">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SME Tracker</title>
+<meta name="description" content="Shop stock, sales, customer dinau (credit) and money. Works offline.">
+<meta name="theme-color" content="#F5F6F8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SME Tracker">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+  <nav id="nav" aria-label="Main"></nav>
+  <header class="top">
+    <h1 id="store">SME Tracker</h1>
+    <div class="till"><small>Cash in till</small><b id="cash">K0.00</b></div>
+    <button type="button" class="icon-btn" data-a="bell" aria-label="Reminders"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><span class="badge" id="bn" hidden>0</span></button>
+    <button type="button" class="icon-btn" data-a="settings" aria-label="Settings"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
+  </header>
+  <div id="banners"></div>
+  <main id="view" tabindex="-1"></main>
+</div>
+<div id="bar"></div>
+<div id="sheets"></div>
+<div id="cf"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="pop" role="status"></div>
+<input type="file" id="file" accept=".smebak,.json,application/json" hidden>
+<noscript><p style="padding:20px">SME Tracker needs JavaScript.</p></noscript>
+<script src="js/util.js"></script>
+<script src="js/store.js"></script>
+<script src="js/calc.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/sell.js"></script>
+<script src="js/stock.js"></script>
+<script src="js/people.js"></script>
+<script src="js/money.js"></script>
+<script src="js/receipt.js"></script>
+<script src="js/report.js"></script>
+<script src="js/backup.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/register.js"></script>
+<script src="js/tools.js"></script>
+<script src="js/boot.js"></script>
+</body>
+</html>
